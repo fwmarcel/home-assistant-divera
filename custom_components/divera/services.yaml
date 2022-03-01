@@ -1,0 +1,4 @@
+set_state:
+  name: Set Divera State
+  description: Immediately execute a speed test with Speedtest.net
+  required: true

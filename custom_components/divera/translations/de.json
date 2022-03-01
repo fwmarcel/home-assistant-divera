@@ -1,0 +1,21 @@
+{
+  "title": "Divera 24/7",
+  "config": {
+    "step": {
+      "user": {
+        "description": "Der Zugangsschlüssel wird verwendet, um die Daten von den Servern abzurufen. Sie finden Ihren Zugangsschlüssel in Ihren Einstellungen unter dem Punkt Debug.",
+        "title": "Divera 24/7",
+        "data": {
+          "api_key": "Accesskey"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect",
+      "unknown": "Unknown Error"
+    },
+    "abort": {
+      "already_configured": "This user is already configured"
+    }
+  }
+}

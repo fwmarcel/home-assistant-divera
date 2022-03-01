@@ -1,0 +1,8 @@
+{
+    "name": "Divera 24/7",
+    "domains": [
+        "sensor"
+    ],
+    "iot_class": "Cloud Polling",
+    "render_readme": false
+}
