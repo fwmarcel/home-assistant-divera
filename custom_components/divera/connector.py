@@ -1,20 +1,19 @@
 """Connector class to retrieve data, which is use by the weather and sensor enities."""
 import logging
-from datetime import datetime
+import json
 import requests
+from datetime import datetime
 
-from .const import DEFAULT_TIMEOUT, DIVERA_URL
-from .data import Vehicle
 from homeassistant.const import STATE_UNKNOWN
+from tomlkit import string
+from .const import DEFAULT_TIMEOUT, DIVERA_STATUS_URL, DIVERA_URL
+from .data import StateNotFoundError, Vehicle
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class DiveraData:
-    """Data object for Divera"""
-
     def __init__(self, hass, api_key):
-        """Initialize the data object."""
         self._hass = hass
 
         self.success = False
@@ -26,13 +25,10 @@ class DiveraData:
             self.api_key = api_key
 
     async def async_update(self):
-        """Async wrapper for update method."""
         return await self._hass.async_add_executor_job(self._update)
 
     def _update(self):
-        """Get the latest data from Divera"""
         timestamp = datetime.now()
-        # Only update on the hour and when not updated yet
 
         if not self.api_key:
             _LOGGER.exception("No update possible")
@@ -52,13 +48,26 @@ class DiveraData:
             _LOGGER.debug("Values updated at %s", self.latest_update)
 
     def get_user(self):
-        """Returns Information of user"""
         data = {}
         data["firstname"] = self.data["data"]["user"]["firstname"]
         data["lastname"] = self.data["data"]["user"]["lastname"]
         data["fullname"] = data["firstname"] + " " + data["lastname"]
         data["email"] = self.data["data"]["user"]["email"]
         return data
+
+    def get_state_if_from_name(self, name):
+        for id in self.data["data"]["cluster"]["statussorting"]:
+            state_name = self.data["data"]["cluster"]["status"][str(id)]["name"]
+            if state_name == name:
+                return id
+        raise StateNotFoundError()
+
+    def get_all_states(self):
+        states = []
+        for id in self.data["data"]["cluster"]["statussorting"]:
+            state_name = self.data["data"]["cluster"]["status"][str(id)]["name"]
+            states.append(state_name)
+        return states
 
     def get_state(self):
         """returns state of divera"""
@@ -122,3 +131,23 @@ class DiveraData:
     def get_id(self):
         """return if of user"""
         return list(self.data["data"]["ucr"])[0]
+
+    def set_status(self, status_id):
+        payload = json.dumps({"Status": {"id": status_id}})
+        headers = {"Content-Type": "application/json"}
+
+        if not self.api_key:
+            _LOGGER.exception("status can not be set")
+        else:
+            params = {"accesskey": self.api_key}
+            try:
+                response = requests.post(
+                    DIVERA_STATUS_URL,
+                    params=params,
+                    headers=headers,
+                    timeout=DEFAULT_TIMEOUT,
+                    data=payload,
+                )
+                _LOGGER.info(response)
+            except requests.exceptions.HTTPError as ex:
+                _LOGGER.error("Error: {}".format(str(ex)))

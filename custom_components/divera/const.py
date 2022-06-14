@@ -17,7 +17,6 @@ DIVERA_NAME = "divera_name"
 DEFAULT_TIMEOUT = 2
 DIVERA_URL = "https://www.divera247.com/api/v2/pull/all"
 DIVERA_STATUS_URL = "https://www.divera247.com/api/v2/statusgeber/set-status"
-
 VEHICLE_ICON = "mdi:fire-truck"
 VEHICLE_ENABLED_DEFAULT = True
 
