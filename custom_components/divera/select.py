@@ -35,16 +35,25 @@ class DiveraStatusSelect(SelectEntity):
         """Initialize the sensor."""
         self._connector = hass_data[DIVERA_DATA]
         self._coordinator = hass_data[DIVERA_COORDINATOR]
-
         self._name = f"{DEFAULT_SHORT_NAME} User Status"
         self._unique_id = f"{DOMAIN}_{hass_data[DIVERA_NAME]}_user_status"
 
     def select_option(self, option: str) -> None:
         """Change the selected option."""
-        _LOGGER.info("Option: %s", option)
+        _LOGGER.info("Status: %s", option)
         id = self._connector.get_state_if_from_name(option)
-        _LOGGER.info("ID: %s", id)
+        _LOGGER.debug("Status Id: %s", id)
         self._connector.set_status(id)
+
+    async def async_added_to_hass(self) -> None:
+        """Set up a listener and load data."""
+        self.async_on_remove(
+            self._coordinator.async_add_listener(self.async_write_ha_state)
+        )
+
+    async def async_update(self):
+        """Schedule a custom update via the common entity update service."""
+        await self._coordinator.async_request_refresh()
 
     @property
     def name(self):
@@ -74,20 +83,10 @@ class DiveraStatusSelect(SelectEntity):
         """Return the state attributes of the device."""
         return self._connector.get_state_attributes()
 
-    async def async_added_to_hass(self) -> None:
-        """Set up a listener and load data."""
-        self.async_on_remove(
-            self._coordinator.async_add_listener(self.async_write_ha_state)
-        )
-
-    async def async_update(self):
-        """Schedule a custom update via the common entity update service."""
-        await self._coordinator.async_request_refresh()
-
     @property
     def should_poll(self) -> bool:
         """Entities do not individually poll."""
-        return False
+        return True
 
     @property
     def available(self):

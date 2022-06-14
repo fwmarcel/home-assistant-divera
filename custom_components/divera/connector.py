@@ -1,11 +1,9 @@
-"""Connector class to retrieve data, which is use by the weather and sensor enities."""
 import logging
 import json
 import requests
 from datetime import datetime
 
 from homeassistant.const import STATE_UNKNOWN
-from tomlkit import string
 from .const import DEFAULT_TIMEOUT, DIVERA_STATUS_URL, DIVERA_URL
 from .data import StateNotFoundError, Vehicle
 
@@ -137,7 +135,7 @@ class DiveraData:
         headers = {"Content-Type": "application/json"}
 
         if not self.api_key:
-            _LOGGER.exception("status can not be set")
+            _LOGGER.exception("status can not be set. api-key is missing")
         else:
             params = {"accesskey": self.api_key}
             try:
@@ -148,6 +146,7 @@ class DiveraData:
                     timeout=DEFAULT_TIMEOUT,
                     data=payload,
                 )
-                _LOGGER.info(response)
+                if response.status_code != 200:
+                    _LOGGER.error("Error while setting the status")
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("Error: {}".format(str(ex)))
