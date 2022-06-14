@@ -5,6 +5,7 @@ import requests
 
 from .const import DEFAULT_TIMEOUT, DIVERA_URL
 from .data import Vehicle
+from homeassistant.const import STATE_UNKNOWN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,27 +76,35 @@ class DiveraData:
 
     def get_last_alarm_attributes(self):
         """return aditional information of last alarm"""
-        last_alarm_id = self.data["data"]["alarm"]["sorting"][0]
-        alarm = self.data["data"]["alarm"]["items"][str(last_alarm_id)]
-
-        groups = map(self.__search_group, alarm["group"])
-        return {
-            "text": alarm["text"],
-            "date": datetime.fromtimestamp(alarm["date"]),
-            "address": alarm["address"],
-            "lat": str(alarm["lat"]),
-            "lng": str(alarm["lng"]),
-            "groups": list(groups),
-            "priority": alarm["priority"],
-            "closed": alarm["closed"],
-            "new": alarm["new"],
-        }
+        sorting_list = self.data["data"]["alarm"]["sorting"]
+        if len(sorting_list) > 0:
+            last_alarm_id = sorting_list[0]
+            alarm = self.data["data"]["alarm"]["items"][str(last_alarm_id)]
+            groups = map(self.__search_group, alarm["group"])
+            return {
+                "text": alarm["text"],
+                "date": datetime.fromtimestamp(alarm["date"]),
+                "address": alarm["address"],
+                "lat": str(alarm["lat"]),
+                "lng": str(alarm["lng"]),
+                "groups": list(groups),
+                "priority": alarm["priority"],
+                "closed": alarm["closed"],
+                "new": alarm["new"],
+                "self_addressed": alarm["ucr_self_addressed"],
+            }
+        else:
+            return {}
 
     def get_last_alarm(self):
         """return informations of last alarm"""
-        last_alarm_id = self.data["data"]["alarm"]["sorting"][0]
-        alarm = self.data["data"]["alarm"]["items"][str(last_alarm_id)]
-        return alarm["title"]
+        sorting_list = self.data["data"]["alarm"]["sorting"]
+        if len(sorting_list) > 0:
+            last_alarm_id = sorting_list[0]
+            alarm = self.data["data"]["alarm"]["items"][str(last_alarm_id)]
+            return alarm["title"]
+        else:
+            return STATE_UNKNOWN
 
     def __search_group(self, group_id):
         group = self.data["data"]["cluster"]["group"][str(group_id)]
