@@ -1,0 +1,31 @@
+blueprint:
+  name: Divera
+  description: Trigger some actions when a new divera alarm is triggered.
+  domain: automation
+  input:
+    divera_sensor:
+      name: Divera sensor
+      description: The sensor which show the current alarm state
+      selector:
+        entity:
+          integration: divera
+          domain: sensor
+    abort_keyword:
+      name: Abort keyword
+      description: "Alarm title/keyword when the action should not be triggered. For example: Probealarm"
+      selector:
+        text: {}
+    target_action:
+      name: Action
+      description: What should be done, when a new divera alarm is trigged?
+      selector:
+        action: {}
+trigger:
+  platform: state
+  entity_id: !input divera_sensor
+  not_to: 
+    - unknown
+    - !input 'abort_keyword'
+action:
+- choose:
+  default: !input 'target_action'
