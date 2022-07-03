@@ -11,8 +11,8 @@ blueprint:
           integration: divera
           domain: sensor
     abort_keyword:
-      name: Abort keyword
-      description: "Alarm title/keyword when the action should not be triggered. For example: Probealarm"
+      name: (optional) Abort keyword
+      description: "(optional) Alarm title/keyword when the action should not be triggered. For example: Probealarm"
       selector:
         text: {}
     target_action:
