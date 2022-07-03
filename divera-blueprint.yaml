@@ -1,6 +1,6 @@
 blueprint:
-  name: Divera
-  description: Trigger some actions when a new divera alarm is triggered.
+  name: Divera alarm automation
+  description: Trigger some actions when a new Divera alarm is triggered.
   domain: automation
   input:
     divera_sensor:
