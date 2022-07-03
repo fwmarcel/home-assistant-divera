@@ -19,6 +19,14 @@ This integration uses the Divera 24/7 [REST API](https://api.divera247.com/) to 
 The configuration is done via UI.
 If you insert your accesskey in the setup dialog.
 
+### How do you get your required access key?
+
+1. Open the settings [website](https://app.divera247.com/account/einstellungen.html) of divera.
+2. Change to the debug tab
+3. Copy your accesskey
+
+![image](https://user-images.githubusercontent.com/59510296/177019399-29de6824-c149-4949-8421-d0edc69a7126.png)
+
 Finally if you like my work, I would be very happy if you [buy me a coffee](https://www.buymeacoffee.com/fwmarcel).
 
 ## Sensor values
@@ -46,6 +54,11 @@ You can enable the ones you like in HA UI under "Configuration" &rarr; "Entities
 
 The sensor values will be set when the next update is scheduled by Home Assistant.
 This is done every minute.
+
+## Automation blueprint
+You can add a basic automation blueprint here: 
+
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Ffwmarcel%2Fhome-assistant-divera%2Fdivera-blueprint.yaml)
 
 ## Help and Contribution
 
