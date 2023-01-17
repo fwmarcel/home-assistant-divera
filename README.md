@@ -1,5 +1,5 @@
 [![GitHub Release][releases-shield]][releases]
-[![hacs][hacsbadge]](hacs)
+[![hacs][hacsbadge]](https://github.com/hacs/integration)
 [![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
 
 _DISCLAIMER: This project is a private open source project and doesn't have any connection with Divera 24/7_
