@@ -89,6 +89,7 @@ class DiveraData:
             alarm = self.data["data"]["alarm"]["items"][str(last_alarm_id)]
             groups = map(self.__search_group, alarm["group"])
             return {
+                "id": alarm["id"],
                 "text": alarm["text"],
                 "date": datetime.fromtimestamp(alarm["date"]),
                 "address": alarm["address"],
