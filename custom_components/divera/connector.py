@@ -115,8 +115,11 @@ class DiveraData:
             return STATE_UNKNOWN
 
     def __search_group(self, group_id):
-        group = self.data["data"]["cluster"]["group"][str(group_id)]
-        return group["name"]
+        try:
+            group = self.data["data"]["cluster"]["group"][str(group_id)]
+            return group["name"]
+        except KeyError:
+            return None
 
     def get_vehicles(self):
         """return list of vehicles"""
