@@ -4,5 +4,5 @@
         "sensor"
     ],
     "iot_class": "Cloud Polling",
-    "render_readme": false
+    "render_readme": true
 }
