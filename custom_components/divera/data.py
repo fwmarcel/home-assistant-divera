@@ -1,4 +1,3 @@
-
 class Vehicle:
     def __init__(self, data):
         self.data = data
@@ -11,6 +10,7 @@ class Vehicle:
 
     def get_fms_state(self):
         return self.data["fmsstatus_id"]
+
 
 class StateNotFoundError(Exception):
     pass

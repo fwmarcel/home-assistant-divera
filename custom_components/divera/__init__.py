@@ -4,8 +4,8 @@ import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_NAME, CONF_API_KEY, CONF_NAME, Platform
-from homeassistant.core import Config, HomeAssistant
+from homeassistant.const import CONF_API_KEY, CONF_NAME, Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 

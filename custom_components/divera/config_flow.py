@@ -14,9 +14,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-
 async def validate_input(hass: core.HomeAssistant, data):
-    """Validate the user input
+    """Validate the user input.
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
@@ -26,9 +25,7 @@ async def validate_input(hass: core.HomeAssistant, data):
     await divera_data.async_update()
     if not divera_data.success:
         raise CannotConnect()
-    return {
-        "unique_id": divera_data.get_user()['fullname']
-    }
+    return {"unique_id": divera_data.get_user()["fullname"]}
 
 
 class DiveraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):

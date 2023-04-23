@@ -39,7 +39,7 @@ class DiveraData:
                 self.data = response.json()
                 self.success = response.status_code == 200
             except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("Error: {}".format(str(ex)))
+                _LOGGER.error(f"Error: {str(ex)}")
                 self.success = False
             else:
                 self.latest_update = timestamp
@@ -68,13 +68,13 @@ class DiveraData:
         return states
 
     def get_state(self):
-        """returns state of divera"""
+        """Returns state of divera."""
         id = self.data["data"]["status"]["status_id"]
         state_name = self.data["data"]["cluster"]["status"][str(id)]["name"]
         return state_name
 
     def get_state_attributes(self):
-        """return aditional information of state"""
+        """Return aditional information of state."""
         data = {}
         timestamp = self.data["data"]["status"]["status_set_date"]
         data["timestamp"] = datetime.fromtimestamp(timestamp)
@@ -82,7 +82,7 @@ class DiveraData:
         return data
 
     def get_last_alarm_attributes(self):
-        """return aditional information of last alarm"""
+        """Return aditional information of last alarm."""
         sorting_list = self.data["data"]["alarm"]["sorting"]
         if len(sorting_list) > 0:
             last_alarm_id = sorting_list[0]
@@ -105,7 +105,7 @@ class DiveraData:
             return {}
 
     def get_last_alarm(self):
-        """return informations of last alarm"""
+        """Return informations of last alarm."""
         sorting_list = self.data["data"]["alarm"]["sorting"]
         if len(sorting_list) > 0:
             last_alarm_id = sorting_list[0]
@@ -122,7 +122,7 @@ class DiveraData:
             return None
 
     def get_vehicles(self):
-        """return list of vehicles"""
+        """Return list of vehicles."""
         raw_vehicles = self.data["data"]["cluster"]["vehicle"]
         vehicles = []
         for id in raw_vehicles:
@@ -131,7 +131,7 @@ class DiveraData:
         return vehicles
 
     def get_id(self):
-        """return if of user"""
+        """Return if of user."""
         return list(self.data["data"]["ucr"])[0]
 
     def set_status(self, status_id):
@@ -153,4 +153,4 @@ class DiveraData:
                 if response.status_code != 200:
                     _LOGGER.error("Error while setting the status")
             except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("Error: {}".format(str(ex)))
+                _LOGGER.error(f"Error: {str(ex)}")
