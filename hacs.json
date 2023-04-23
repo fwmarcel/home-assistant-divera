@@ -1,8 +1,6 @@
 {
     "name": "Divera 24/7",
-    "domains": [
-        "sensor"
-    ],
-    "iot_class": "Cloud Polling",
-    "render_readme": true
+    "render_readme": true,
+    "hide_default_branch": true,
+    "country": "DE"
 }
