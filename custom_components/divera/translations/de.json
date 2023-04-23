@@ -4,7 +4,6 @@
     "step": {
       "user": {
         "description": "Der Zugangsschlüssel wird verwendet, um die Daten von den Servern abzurufen. Sie finden Ihren Zugangsschlüssel in Ihren Einstellungen unter dem Punkt Debug.",
-        "title": "Divera 24/7",
         "data": {
           "api_key": "Accesskey"
         }
