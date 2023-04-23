@@ -4,7 +4,6 @@
     "step": {
       "user": {
         "description": "The accesskey will be used to pull the data from the servers. You can found your accesskey in your settings under debug item.",
-        "title": "Divera 24/7",
         "data": {
           "api_key": "Accesskey"
         }
