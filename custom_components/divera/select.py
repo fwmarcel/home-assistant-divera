@@ -1,4 +1,4 @@
-"""Sensor for Divera 24/7 service."""
+"""Component for the selection of a divera state by the user."""
 
 import logging
 
@@ -23,13 +23,13 @@ async def async_setup_entry(
     hass_data = hass.data[DOMAIN][entry.entry_id]
     _LOGGER.debug("Sensor async_setup_entry")
     async_add_entities(
-        [DiveraStatusSelect(hass_data)],
+        [DiveraStateSelect(hass_data)],
         False,
     )
 
 
-class DiveraStatusSelect(SelectEntity):
-    """Implementation of a Divera sensor."""
+class DiveraStateSelect(SelectEntity):
+    """implementation of a select unit for the divera status of the user."""
 
     def __init__(self, hass_data):
         """Initialize the sensor."""
@@ -57,7 +57,7 @@ class DiveraStatusSelect(SelectEntity):
 
     @property
     def name(self):
-        """Return the name of the sensor."""
+        """Return the name of the entity."""
         return self._name
 
     @property
@@ -67,20 +67,22 @@ class DiveraStatusSelect(SelectEntity):
 
     @property
     def current_option(self):
+        """Return the selected entity option to represent the entity state."""
         return self._connector.get_state()
 
     @property
     def icon(self):
-        """Return the icon for the entity card."""
+        """Return the icon to use in the frontend."""
         return "mdi:clock-time-nine-outline"
 
     @property
     def unique_id(self):
+        """Return a unique ID."""
         return self._unique_id
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes of the device."""
+        """Return entity specific state attributes."""
         return self._connector.get_state_attributes()
 
     @property
@@ -90,5 +92,5 @@ class DiveraStatusSelect(SelectEntity):
 
     @property
     def available(self):
-        """Return if state is available."""
+        """Return True if entity is available."""
         return self._connector.success and self._connector.latest_update is not None

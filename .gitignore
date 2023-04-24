@@ -9,9 +9,12 @@ __pycache__
 # misc
 .coverage
 .vscode
+.idea
+.ruff_cache
 coverage.xml
 
 
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+
