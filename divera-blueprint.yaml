@@ -35,9 +35,12 @@ blueprint:
         action: {}
 mode: parallel
 max: 10
+
+variables:
+  self_addressed: !input self_addressed
 trigger:
   - platform: state
-    entity_id: !input 'divera_sensor'
+    entity_id: !input divera_sensor
     not_to:
     - unknown
     - !input 'abort_keyword'
@@ -45,12 +48,11 @@ condition:
   - condition: or
     conditions:
       - condition: template
-        value_template: {{ not self_addressed }}
+        value_template: "{{ is_state(self_addressed, 'off') }}"
       - condition: state
-        entity_id: !input 'divera_sensor'
+        entity_id: !input divera_sensor
         attribute: self_addressed
         state: true
 action:
-  - 
   - choose:
-    default: !input 'target_action'
+    default: !input target_action
