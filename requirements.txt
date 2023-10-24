@@ -1,5 +1,5 @@
 colorlog==6.7.0
-homeassistant==2023.10.4
+homeassistant==2023.10.5
 ruff==0.1.1
 pip>=23.3,<24
-black==23.10.0
+black==23.10.1
