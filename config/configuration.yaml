@@ -6,3 +6,7 @@ logger:
   default: info
   logs:
     custom_components.divera: debug
+
+debugpy:
+  start: true
+  wait: true

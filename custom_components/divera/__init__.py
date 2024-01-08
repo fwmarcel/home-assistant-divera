@@ -12,7 +12,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .connector import DiveraData
 from .const import (
     DEFAULT_SCAN_INTERVAL,
-    DIVERA_STATE_SERVICE,
     DOMAIN,
     DIVERA_COORDINATOR,
     DIVERA_DATA,
@@ -89,7 +88,6 @@ async def async_update(self):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
-    hass.services.async_remove(DOMAIN, DIVERA_STATE_SERVICE)
 
     unload_ok = all(
         await asyncio.gather(

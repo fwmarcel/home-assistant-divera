@@ -79,6 +79,9 @@ class DiveraData:
     def get_user_state(self):
         """Give the name of the current status of the user."""
         status_id = self.data["data"]["status"]["status_id"]
+        return self.get_state_name_by_id(status_id)
+
+    def get_state_name_by_id(self, status_id):
         state_name = self.data["data"]["cluster"]["status"][str(status_id)]["name"]
         return state_name
 
@@ -109,9 +112,19 @@ class DiveraData:
                 "closed": alarm["closed"],
                 "new": alarm["new"],
                 "self_addressed": alarm["ucr_self_addressed"],
+                "answered": self.get_answered_state(alarm)
             }
         else:
             return {}
+
+    def get_answered_state(self, alarm):
+        answered = alarm["ucr_answered"]
+        id = self.get_id()
+        for answer_state in answered:
+            state = alarm["ucr_answered"][str(answer_state)]
+            if id in state:
+                return self.get_state_name_by_id(answer_state)
+        return "not answered"
 
     def get_last_alarm(self):
         """Return informations of last alarm."""

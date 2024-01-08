@@ -63,12 +63,12 @@ class DiveraStateSelect(SelectEntity):
     @property
     def options(self):
         """Return the state of the sensor."""
-        return self._connector.get_all_states()
+        return self._connector.get_all_state_name()
 
     @property
     def current_option(self):
         """Return the selected entity option to represent the entity state."""
-        return self._connector.get_state()
+        return self._connector.get_user_state()
 
     @property
     def icon(self):
@@ -83,7 +83,7 @@ class DiveraStateSelect(SelectEntity):
     @property
     def extra_state_attributes(self):
         """Return entity specific state attributes."""
-        return self._connector.get_state_attributes()
+        return self._connector.get_user_state_attributes()
 
     @property
     def should_poll(self) -> bool:
