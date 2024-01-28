@@ -4,7 +4,7 @@ blueprint:
   domain: automation
   author: fwmarcel
   source_url: https://github.com/fwmarcel/home-assistant-divera/blob/main/divera-blueprint.yaml
-  homeassistant: 
+  homeassistant:
     min_version: 2022.4.0
   input:
     divera_sensor:
@@ -35,7 +35,6 @@ blueprint:
         action: {}
 mode: parallel
 max: 10
-
 variables:
   self_addressed: !input self_addressed
 trigger:
