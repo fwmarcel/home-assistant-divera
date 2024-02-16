@@ -82,6 +82,7 @@ class DiveraData:
         return self.get_state_name_by_id(status_id)
 
     def get_state_name_by_id(self, status_id):
+        """Return the name of the state of the user by given id."""
         state_name = self.data["data"]["cluster"]["status"][str(status_id)]["name"]
         return state_name
 
@@ -118,6 +119,7 @@ class DiveraData:
             return {}
 
     def get_answered_state(self, alarm):
+        """Return the state of the user answered the alarm."""
         answered = alarm["ucr_answered"]
         id = self.get_id()
         for answer_state in answered:
