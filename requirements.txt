@@ -1,5 +1,5 @@
 colorlog==6.8.2
 homeassistant==2024.1.2
 ruff==0.2.1
-pip>=23.3,<24
+pip>=24,<25
 black==24.2.0
