@@ -25,6 +25,7 @@ blueprint:
       name: (optional) Abort keyword
       description: '(optional) Alarm title/keyword when the action should not be triggered.
         For example: Probealarm'
+      default: ''
       selector:
         text:
           multiline: false
