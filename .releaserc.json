@@ -1,0 +1,71 @@
+{
+  "branches": [
+    "release",
+    {
+      "name": "main",
+      "prerelease": "rc"
+    }
+  ],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./scripts/prepare.sh ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "custom_components/divera/manifest.json"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "custom_components/divera/divera.zip"
+          }
+        ]
+      }
+    ]
+  ],
+  "preset": "conventionalcommits",
+  "presetConfig": {
+    "types": [
+      {
+        "type": "feat",
+        "section": "Features :sparkles:"
+      },
+      {
+        "type": "feature",
+        "section": "Features :sparkles:"
+      },
+      {
+        "type": "fix",
+        "section": "Bug Fixes :bug:"
+      },
+      {
+        "type": "docs",
+        "section": "Documentation :books:"
+      },
+      {
+        "type": "refactor",
+        "section": "Code Refactoring :hammer:"
+      },
+      {
+        "type": "test",
+        "section": "Tests :umbrella:"
+      },
+      {
+        "type": "ci",
+        "section": "Continuous Integration :wrench:"
+      }
+    ]
+  }
+}
