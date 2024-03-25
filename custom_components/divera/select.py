@@ -2,28 +2,31 @@
 
 import logging
 
-from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 from homeassistant.components.select import SelectEntity
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
+from . import DiveraData
 from .const import (
-    DEFAULT_SHORT_NAME,
-    DIVERA_NAME,
     DOMAIN,
     DIVERA_COORDINATOR,
-    DIVERA_DATA,
+    DIVERA_DATA, INTEGRATION_FULL_NAME, DIVERA_GMBH,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigType, async_add_entities
+        hass: HomeAssistantType, entry: ConfigType, async_add_entities
 ) -> None:
     """Set up the Divera sensor platform."""
-    hass_data = hass.data[DOMAIN][entry.entry_id]
-    _LOGGER.debug("Sensor async_setup_entry")
+    hass_data_all = hass.data[DOMAIN][entry.entry_id]
+    entities = []
+    for index in hass_data_all:
+        hass_data = hass_data_all[index]
+        entities.append(DiveraStateSelect(hass_data))
     async_add_entities(
-        [DiveraStateSelect(hass_data)],
+        entities,
         False,
     )
 
@@ -33,17 +36,22 @@ class DiveraStateSelect(SelectEntity):
 
     def __init__(self, hass_data):
         """Initialize the sensor."""
-        self._connector = hass_data[DIVERA_DATA]
+        self._connector: DiveraData = hass_data[DIVERA_DATA]
         self._coordinator = hass_data[DIVERA_COORDINATOR]
-        self._name = f"{DEFAULT_SHORT_NAME} User Status"
-        self._unique_id = f"{DOMAIN}_{hass_data[DIVERA_NAME]}_user_status"
+
+        self._ucr_id = self._connector.get_active_ucr()
+        self._cluster_name = self._connector.get_cluster_name_from_ucr(self._ucr_id)
+
+        self._name = f"{self._cluster_name} User Status"
+        self._unique_id = f"{DOMAIN}_{self._ucr_id}_user_status"
+        self._icon = "mdi:clock-time-nine-outline"
 
     def select_option(self, option: str) -> None:
         """Change the selected option."""
         _LOGGER.info("Status: %s", option)
-        id = self._connector.get_state_id_by_name(option)
-        _LOGGER.debug("Status Id: %s", id)
-        self._connector.set_status(id)
+        sid = self._connector.get_state_id_by_name(option)
+        _LOGGER.debug("Status Id: %s", sid)
+        self._connector.set_state(sid)
 
     async def async_added_to_hass(self) -> None:
         """Set up a listener and load data."""
@@ -73,7 +81,7 @@ class DiveraStateSelect(SelectEntity):
     @property
     def icon(self):
         """Return the icon to use in the frontend."""
-        return "mdi:clock-time-nine-outline"
+        return self._icon
 
     @property
     def unique_id(self):
@@ -88,9 +96,24 @@ class DiveraStateSelect(SelectEntity):
     @property
     def should_poll(self) -> bool:
         """Entities do not individually poll."""
-        return True
+        return False
 
     @property
     def available(self):
         """Return True if entity is available."""
         return self._connector.success and self._connector.latest_update is not None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        version = self._connector.get_cluster_version()
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, self._ucr_id)
+            },
+            serial_number=self._ucr_id,
+            name=self._cluster_name,
+            manufacturer=DIVERA_GMBH,
+            model=INTEGRATION_FULL_NAME,
+            sw_version=version
+        )

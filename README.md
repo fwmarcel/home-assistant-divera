@@ -1,15 +1,16 @@
 # Divera 24/7 Integration for Home Assistant
 
-[![GitHub Release][releases-shield]][releases]
-![Project Maintenance][maintenance-shield]
-[![GitHub Activity][commits-shield]][commits]
-[![hacs][hacsbadge]][hacs]
-[![License][license-shield]](LICENSE)
-[![BuyMeCoffee][buymecoffeebadge]][buymecoffee]
+![GitHub Release](https://img.shields.io/github/v/release/fwmarcel/home-assistant-divera?style=for-the-badge)
+![GitHub Release Date](https://img.shields.io/github/release-date/fwmarcel/home-assistant-divera?style=for-the-badge)
+![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/fwmarcel/home-assistant-divera/latest/total?style=for-the-badge&label=Downloads)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/fwmarcel/home-assistant-divera?style=for-the-badge)
+[![hacs](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![BuyMeCoffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge)](https://www.buymeacoffee.com/fwmarcel)
 
 _DISCLAIMER: This project is a private open source project and doesn't have any connection with Divera 24/7_
 
-This integration uses the Divera 24/7 [REST API](https://api.divera247.com/) to retrieve information and display it in Home Assitant.
+This integration uses the Divera 24/7 [REST API](https://api.divera247.com/) to retrieve information and display it in
+Home Assitant.
 
 ## Installation
 
@@ -31,7 +32,6 @@ If you insert your accesskey in the setup dialog.
 3. Copy your accesskey
 
 ![image](https://user-images.githubusercontent.com/59510296/177019399-29de6824-c149-4949-8421-d0edc69a7126.png)
-
 
 ### Sensor values
 
@@ -55,12 +55,15 @@ For example:
 
 Some sensor sensors are disabled per default, as they contain a lot of data.
 
-You can enable the ones you like in HA UI under "Configuration" &rarr; "Entities" &rarr; click on the filter icon on the right &rarr; Check "Show diabled entities" &rarr; Check the ones you like to enable &rarr; Click "ENABLE SELECTED" at the top &rarr; Confirm the next dialog
+You can enable the ones you like in HA UI under "Configuration" &rarr; "Entities" &rarr; click on the filter icon on the
+right &rarr; Check "Show diabled entities" &rarr; Check the ones you like to enable &rarr; Click "ENABLE SELECTED" at
+the top &rarr; Confirm the next dialog
 
 The sensor values will be set when the next update is scheduled by Home Assistant.
 This is done every minute.
 
 ## Automation blueprint
+
 You can add a basic automation blueprint here:
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Ffwmarcel%2Fhome-assistant-divera%2Fblob%2Fmain%2Fdivera-blueprint.yaml)
@@ -71,16 +74,8 @@ If you find a problem, feel free to report it and I will do my best to help you.
 If you have something to contribute, your help is greatly appreciated!
 If you want to add a new feature, add a pull request first so we can discuss the details.
 
+## Star History
 
-***
-
-[buymecoffee]: https://www.buymeacoffee.com/fwmarcel
-[buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
-[commits-shield]: https://img.shields.io/github/commit-activity/y/fwmarcel/home-assistant-divera.svg?style=for-the-badge
-[commits]: https://github.com/fwmarcel/home-assistant-divera/commits/main
-[hacs]: https://github.com/hacs/integration
-[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
-[license-shield]: https://img.shields.io/github/license/fwmarcel/home-assistant-divera.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/fwmarcel/home-assistant-divera.svg?style=for-the-badge
-[releases]: https://github.com/fwmarcel/home-assistant-divera/releases
-[maintenance-shield]: https://img.shields.io/badge/maintainer-fwmarcel-blue.svg?style=for-the-badge
+<a href="https://star-history.com/#fwmarcel/home-assistant-divera">
+  <img src="https://api.star-history.com/svg?repos=fwmarcel/home-assistant-divera&type=Date" alt="Star History Chart" width="100%" />
+</a>

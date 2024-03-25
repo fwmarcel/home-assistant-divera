@@ -7,6 +7,6 @@ logger:
   logs:
     custom_components.divera: debug
 
-debugpy:
-  start: true
-  wait: false
+#debugpy:
+#  start: true
+#  wait: false

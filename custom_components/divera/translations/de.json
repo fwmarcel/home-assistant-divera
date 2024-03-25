@@ -3,18 +3,25 @@
   "config": {
     "step": {
       "user": {
-        "description": "Der Zugangsschlüssel wird verwendet, um die Daten von den Servern abzurufen. Sie finden Ihren Zugangsschlüssel in Ihren Einstellungen unter dem Punkt Debug.",
         "data": {
-          "api_key": "Accesskey"
-        }
+          "accesskey": "Accesskey"
+        },
+        "description": "Der Zugangsschlüssel wird verwendet, um die Daten von den Servern abzurufen. Sie finden Ihren Zugangsschlüssel in Ihren Einstellungen unter dem Punkt Debug."
+      },
+      "user_cluster_relation": {
+        "data": {
+          "clusters": "Aktive Einheiten:"
+        },
+        "description": "Ein DIVERA 24/7 Account kann mehrere Einheiten gleichzeitig haben. Standardmäßig wird nur die Stammeinheit geladen."
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect",
-      "unknown": "Unknown Error"
+      "cannot_connect": "Fehler bei der Verbindung.",
+      "auth": "Fehler bei der Authentifizierung.",
+      "unknown": "Unbekannter Fehler"
     },
     "abort": {
-      "already_configured": "This user is already configured"
+      "already_configured": "Dieser Benutzer ist bereits konfiguriert."
     }
   }
 }

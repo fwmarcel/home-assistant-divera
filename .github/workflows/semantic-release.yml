@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   release:
-    name: Release
+    name: Semantic-Release
     runs-on: ubuntu-latest
     permissions:
       contents: write # to be able to publish a GitHub release

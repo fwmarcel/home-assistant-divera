@@ -2,28 +2,29 @@
 
 import logging
 
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 
 from .const import (
-    DEFAULT_SHORT_NAME,
     DOMAIN,
     DIVERA_COORDINATOR,
     DIVERA_DATA,
-    DIVERA_NAME,
+    INTEGRATION_FULL_NAME, DIVERA_GMBH,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigType, async_add_entities
-) -> None:
+async def async_setup_entry(hass: HomeAssistantType, entry: ConfigType, async_add_entities) -> None:
     """Set up the Divera sensor platform."""
-    hass_data = hass.data[DOMAIN][entry.entry_id]
-    _LOGGER.debug("Sensor async_setup_entry")
+    hass_data_all = hass.data[DOMAIN][entry.entry_id]
+    entities = []
+    for index in hass_data_all:
+        hass_data = hass_data_all[index]
+        entities.append(DiveraSensor(hass_data))
     async_add_entities(
-        [DiveraSensor(hass_data)],
+        entities,
         False,
     )
 
@@ -36,8 +37,11 @@ class DiveraSensor(Entity):
         self._connector = hass_data[DIVERA_DATA]
         self._coordinator = hass_data[DIVERA_COORDINATOR]
 
-        self._name = f"{DEFAULT_SHORT_NAME} Alarm"
-        self._unique_id = f"{DOMAIN}_{hass_data[DIVERA_NAME]}_alarm"
+        self._ucr_id = self._connector.get_active_ucr()
+        self._cluster_name = self._connector.get_cluster_name_from_ucr(self._ucr_id)
+
+        self._name = f"{self._cluster_name} Alarm"
+        self._unique_id = f"{DOMAIN}_{self._ucr_id}_alarm"
         self._icon = "mdi:message-text"
 
     @property
@@ -84,3 +88,18 @@ class DiveraSensor(Entity):
     def available(self):
         """Return if state is available."""
         return self._connector.success and self._connector.latest_update is not None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        version = self._connector.get_cluster_version()
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, self._ucr_id)
+            },
+            serial_number=self._ucr_id,
+            name=self._cluster_name,
+            manufacturer=DIVERA_GMBH,
+            model=INTEGRATION_FULL_NAME,
+            sw_version=version
+        )

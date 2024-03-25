@@ -1,12 +1,14 @@
 """Connector Class for Divera Data."""
 
-from datetime import datetime
-import logging
 import json
-import requests
+import logging
+from datetime import datetime
 
+import requests
 from homeassistant.const import STATE_UNKNOWN
-from .const import DEFAULT_TIMEOUT, DIVERA_STATUS_URL, DIVERA_URL
+
+from .const import DEFAULT_TIMEOUT, DIVERA_STATUS_URL, DIVERA_URL, ACCESSKEY, UCR, VERSION_UNKNOWN, VERSION_ALARM, \
+    VERSION_FREE, VERSION_PRO
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,8 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class DiveraData:
     """helper class for centrally querying the data from Divera."""
 
-    def __init__(self, hass, api_key):
-        """Initiate necessary data for the helper class."""
+    def __init__(self, hass, accesskey, ucr_id=None):
         self._hass = hass
 
         self.success = False
@@ -23,8 +24,9 @@ class DiveraData:
 
         self.data = None
 
-        if api_key != "":
-            self.api_key = api_key
+        self.accesskey = accesskey
+
+        self.ucr_id = ucr_id
 
     async def async_update(self):
         """Asynchronous update for all Divera entities."""
@@ -34,10 +36,12 @@ class DiveraData:
         """Update for all Divera entities."""
         timestamp = datetime.now()
 
-        if not self.api_key:
+        if not self.accesskey:
             _LOGGER.exception("No update possible")
         else:
-            params = {"accesskey": self.api_key}
+            params = {ACCESSKEY: self.accesskey}
+            if self.ucr_id is not None:
+                params["ucr"] = self.ucr_id
             try:
                 response = requests.get(
                     DIVERA_URL, params=params, timeout=DEFAULT_TIMEOUT
@@ -51,13 +55,18 @@ class DiveraData:
                 self.latest_update = timestamp
             _LOGGER.debug("Values updated at %s", self.latest_update)
 
+    def get_full_name(self):
+        firstname = self.data["data"]["user"]["firstname"]
+        lastname = self.data["data"]["user"]["lastname"]
+        return firstname + ' ' + lastname
+
     def get_user(self):
         """Return information about the user."""
         data = {}
         data["firstname"] = self.data["data"]["user"]["firstname"]
         data["lastname"] = self.data["data"]["user"]["lastname"]
-        data["fullname"] = data["firstname"] + " " + data["lastname"]
-        data["email"] = self.data["data"]["user"]["email"]
+        data["fullname"] = self.get_full_name()
+        data["email"] = self.get_email()
         return data
 
     def get_state_id_by_name(self, name):
@@ -65,7 +74,7 @@ class DiveraData:
         for state_id in self.data["data"]["cluster"]["statussorting"]:
             state_name = self.data["data"]["cluster"]["status"][str(state_id)]["name"]
             if state_name == name:
-                return id
+                return state_id
         return None
 
     def get_all_state_name(self):
@@ -123,7 +132,12 @@ class DiveraData:
         answered = alarm["ucr_answered"]
         id = self.get_id()
         for answer_state in answered:
-            state = alarm["ucr_answered"][str(answer_state)]
+            try:
+                state = answered[str(answer_state)]
+            except TypeError:
+                for state_id in answer_state:
+                    state = answer_state[str(state_id)]
+                    break
             if id in state:
                 return self.get_state_name_by_id(answer_state)
         return "not answered"
@@ -146,19 +160,67 @@ class DiveraData:
         except KeyError:
             return None
 
+    def get_default_ucr(self):
+        return self.data["data"]["ucr_default"]
+
+    def get_active_ucr(self):
+        return self.data["data"]["ucr_active"]
+
+    def get_default_ucr_name(self):
+        ucr_id = self.get_default_ucr()
+        return self.data["data"]["ucr"][str(ucr_id)]["name"]
+
+    def get_ucr_count(self):
+        return len(self.get_all_ucrs())
+
+    def get_all_ucr_names(self):
+        ucrs = list(self.data["data"]["ucr"])
+        ucr_names = []
+        for ucr_id in ucrs:
+            ucr_name = self.data["data"]["ucr"][str(ucr_id)]["name"]
+            ucr_names.append(ucr_name)
+        return ucr_names
+
+    def get_all_ucrs(self):
+        return list(self.data["data"]["ucr"])
+
+    def get_cluster_name_from_ucr(self, ucr_id):
+        return self.data["data"]["ucr"][str(ucr_id)]["name"]
+
+    def get_cluster_id_from_ucr(self, ucr_id):
+        return self.data["data"]["ucr"][str(ucr_id)]["cluster_id"]
+
+    def get_ucr_ids(self, ucr_names):
+        ucrs = list(self.data["data"]["ucr"])
+        ucr_ids = []
+        for ucr_id in ucrs:
+            ucr_name = self.data["data"]["ucr"][str(ucr_id)]["name"]
+            if ucr_name in ucr_names:
+                ucr_ids.append(ucr_id)
+        return ucr_ids
+
     def get_id(self):
         """Return id of user."""
         return list(self.data["data"]["ucr"])[0]
+
+    def get_accesskey(self):
+        return self.data["data"]["user"]["accesskey"]
+
+    def get_email(self):
+        return self.data["data"]["user"]["email"]
 
     def set_state(self, state_id):
         """Set the state of the user to the given id."""
         payload = json.dumps({"Status": {"id": state_id}})
         headers = {"Content-Type": "application/json"}
 
-        if not self.api_key:
-            _LOGGER.exception("state can not be set. api-key is missing")
+        if not self.accesskey:
+            _LOGGER.exception("state can not be set. accesskey is missing or wrong.")
         else:
-            params = {"accesskey": self.api_key}
+            params = {
+                ACCESSKEY: self.accesskey,
+                UCR: self.ucr_id
+            }
             try:
                 response = requests.post(
                     DIVERA_STATUS_URL,
@@ -168,6 +230,18 @@ class DiveraData:
                     data=payload,
                 )
                 if response.status_code != 200:
-                    _LOGGER.error("Error while setting the state")
+                    _LOGGER.error("error while setting the state %s", response.status_code)
             except requests.exceptions.HTTPError as ex:
                 _LOGGER.error("Error: %s", ex)
+
+    def get_cluster_version(self):
+        version = self.data["data"]["cluster"]["version_id"]
+        match version:
+            case 1:
+                return VERSION_FREE
+            case 2:
+                return VERSION_ALARM
+            case 2:
+                return VERSION_PRO
+            case _:
+                return VERSION_UNKNOWN
