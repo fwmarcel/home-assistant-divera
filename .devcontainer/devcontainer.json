@@ -1,6 +1,8 @@
 {
   "name": "home-assistant-divera",
-  "image": "python:3.12-bookworm",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "postCreateCommand": "scripts/setup",
   "forwardPorts": [
     8123
