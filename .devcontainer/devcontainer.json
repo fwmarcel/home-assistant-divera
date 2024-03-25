@@ -1,0 +1,15 @@
+{
+  "name": "home-assistant-divera",
+  "image": "python:3.12-bookworm",
+  "postCreateCommand": "scripts/setup",
+  "forwardPorts": [
+    8123
+  ],
+  "portsAttributes": {
+    "8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "notify"
+    }
+  }
+}
+
