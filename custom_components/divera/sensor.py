@@ -10,7 +10,8 @@ from .const import (
     DOMAIN,
     DIVERA_COORDINATOR,
     DIVERA_DATA,
-    INTEGRATION_FULL_NAME, DIVERA_GMBH,
+    INTEGRATION_FULL_NAME,
+    DIVERA_GMBH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,18 +23,27 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigType, async_ad
     entities = []
     for index in hass_data_all:
         hass_data = hass_data_all[index]
-        entities.append(DiveraSensor(hass_data))
+        entities.append(DiveraAlarmSensor(hass_data))
     async_add_entities(
         entities,
         False,
     )
 
 
-class DiveraSensor(Entity):
-    """Implementation of a Divera sensor."""
+class DiveraAlarmSensor(Entity):
+    """Implementation of a Divera Alarm Sensor.
+
+    This class represents a sensor entity that retrieves data from Divera.
+
+    """
 
     def __init__(self, hass_data):
-        """Initialize the sensor."""
+        """Initialize the sensor.
+
+        Args:
+            hass_data (dict): Data from Home Assistant.
+
+        """
         self._connector = hass_data[DIVERA_DATA]
         self._coordinator = hass_data[DIVERA_COORDINATOR]
 
@@ -46,60 +56,104 @@ class DiveraSensor(Entity):
 
     @property
     def name(self):
-        """Return the name of the sensor."""
+        """Return the name of the sensor.
+
+        Returns:
+            str: The name of the sensor.
+
+        """
         return self._name
 
     @property
     def unique_id(self):
-        """Return the unique of the sensor."""
+        """Return the unique ID of the sensor.
+
+        Returns:
+            str: The unique ID of the sensor.
+
+        """
         return self._unique_id
 
     @property
-    def state(self):
-        """Return the state of the sensor."""
+    def state(self) -> str:
+        """Return the state of the sensor.
+
+        Returns:
+            str: The state of the sensor.
+
+        """
         return self._connector.get_last_alarm()
 
     @property
     def icon(self):
-        """Return the icon for the entity card."""
+        """Return the icon for the entity card.
+
+        Returns:
+            str: The icon for the entity card.
+
+        """
         return self._icon
 
     @property
     def extra_state_attributes(self):
-        """Return the state attributes of the device."""
+        """Return the state attributes of the device.
+
+        Returns:
+            dict: The state attributes of the device.
+
+        """
         return self._connector.get_last_alarm_attributes()
 
     async def async_added_to_hass(self) -> None:
-        """Set up a listener and load data."""
-        self.async_on_remove(
-            self._coordinator.async_add_listener(self.async_write_ha_state)
-        )
+        """Set up a listener and load data.
+
+        This method sets up a listener for state updates and loads data accordingly.
+
+        """
+        self.async_on_remove(self._coordinator.async_add_listener(self.async_write_ha_state))
 
     async def async_update(self):
-        """Schedule a custom update via the common entity update service."""
+        """Schedule a custom update via the common entity update service.
+
+        This method schedules a custom update by requesting a refresh through the coordinator.
+
+        """
         await self._coordinator.async_request_refresh()
 
     @property
     def should_poll(self) -> bool:
-        """Entities do not individually poll."""
+        """Return whether entities should be polled.
+
+        Returns:
+            bool: False, as entities do not individually poll.
+
+        """
         return False
 
     @property
-    def available(self):
-        """Return if state is available."""
+    def available(self) -> bool:
+        """Return whether the component is available.
+
+        Returns:
+            bool: True if the component is available, False otherwise.
+
+        """
         return self._connector.success and self._connector.latest_update is not None
 
     @property
     def device_info(self) -> DeviceInfo:
+        """Return device information.
+
+        Returns:
+            DeviceInfo: Device information object.
+
+        """
         version = self._connector.get_cluster_version()
-        """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, self._ucr_id)
-            },
-            serial_number=self._ucr_id,
+            identifiers={(DOMAIN, str(self._ucr_id))},
+            serial_number=str(self._ucr_id),
             name=self._cluster_name,
             manufacturer=DIVERA_GMBH,
             model=INTEGRATION_FULL_NAME,
-            sw_version=version
+            sw_version=version,
         )

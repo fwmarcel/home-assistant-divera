@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+apt-get update
+apt-get install ffmpeg -y
+
 set -e
 
 cd "$(dirname "$0")/.."
