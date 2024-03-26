@@ -3,6 +3,9 @@
   "extends": [
     "config:recommended"
   ],
+  "baseBranches": [
+    "develop"
+  ],
   "dependencyDashboard": false,
   "packageRules": [
     {
