@@ -1,34 +1,35 @@
-"""Constants for the Divera integration."""
+"""constants for divera integration."""
+
 from datetime import timedelta
 
-DOMAIN = "divera"
+DOMAIN: str = "divera"
 
-INTEGRATION_FULL_NAME = "Divera 24/7"
-INTEGRATION_SHORT_NAME = "Divera"
-DIVERA_GMBH = "Divera GmbH"
+INTEGRATION_FULL_NAME: str = "Divera 24/7"
+INTEGRATION_SHORT_NAME: str = "Divera"
+DIVERA_GMBH: str = "Divera GmbH"
 
-ATTR_NAME = "state"
-ATTR_LATEST_UPDATE = "latest_update_utc"
-DIVERA_DATA = "divera_data"
-DIVERA_COORDINATOR = "divera_coordinator"
-USER_NAME = "user_name"
+ATTR_NAME: str = "state"
+ATTR_LATEST_UPDATE: str = "latest_update_utc"
+DIVERA_DATA: str = "divera_data"
+DIVERA_COORDINATOR: str = "divera_coordinator"
+USER_NAME: str = "user_name"
 
 DEFAULT_TIMEOUT = 10
-DIVERA_URL = "https://www.divera247.com/api/v2/pull/all"
-DIVERA_STATUS_URL = "https://www.divera247.com/api/v2/statusgeber/set-status"
+DIVERA_URL: str = "https://www.divera247.com/api/v2/pull/all"
+DIVERA_STATUS_URL: str = "https://www.divera247.com/api/v2/statusgeber/set-status"
 
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=1)
+DEFAULT_SCAN_INTERVAL: timedelta = timedelta(minutes=1)
 
-CONF_ACCESSKEY = "accesskey"
-CONF_FULLNAME = "fullname"
-CONF_CLUSTERS = "clusters"
-CONF_UCRS = "ucrs"
+CONF_ACCESSKEY: str = "accesskey"
+CONF_FULLNAME: str = "fullname"
+CONF_CLUSTERS: str = "clusters"
+CONF_UCRS: str = "ucrs"
 
-CLUSTER_NAME = "cluster_name"
-ACCESSKEY = "accesskey"
-UCR = "ucr"
+CLUSTER_NAME: str = "cluster_name"
+ACCESSKEY: str = "accesskey"
+UCR: str = "ucr"
 
-VERSION_FREE = "Free"
-VERSION_ALARM = "Alarm"
-VERSION_PRO = "Pro"
-VERSION_UNKNOWN = "Unknown"
+VERSION_FREE: str = "Free"
+VERSION_ALARM: str = "Alarm"
+VERSION_PRO: str = "Pro"
+VERSION_UNKNOWN: str = "Unknown"

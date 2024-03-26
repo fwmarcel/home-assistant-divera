@@ -1,9 +1,7 @@
 {
   "name": "home-assistant-divera",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "postCreateCommand": "scripts/setup",
+  "image": "python:3.11.8",
+  "postCreateCommand": "scripts/setup.sh",
   "forwardPorts": [
     8123
   ],
