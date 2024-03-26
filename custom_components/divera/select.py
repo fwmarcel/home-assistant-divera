@@ -10,15 +10,15 @@ from . import DiveraData
 from .const import (
     DOMAIN,
     DIVERA_COORDINATOR,
-    DIVERA_DATA, INTEGRATION_FULL_NAME, DIVERA_GMBH,
+    DIVERA_DATA,
+    INTEGRATION_FULL_NAME,
+    DIVERA_GMBH,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-        hass: HomeAssistantType, entry: ConfigType, async_add_entities
-) -> None:
+async def async_setup_entry(hass: HomeAssistantType, entry: ConfigType, async_add_entities) -> None:
     """Set up the Divera sensor platform."""
     hass_data_all = hass.data[DOMAIN][entry.entry_id]
     entities = []
@@ -32,10 +32,19 @@ async def async_setup_entry(
 
 
 class DiveraStateSelect(SelectEntity):
-    """implementation of a select unit for the divera status of the user."""
+    """Implementation of a select unit for the Divera status of the user.
+
+    This class represents a select entity for displaying the Divera status of the user.
+
+    """
 
     def __init__(self, hass_data):
-        """Initialize the sensor."""
+        """Initialize the sensor.
+
+        Args:
+            hass_data (dict): Data from Home Assistant.
+
+        """
         self._connector: DiveraData = hass_data[DIVERA_DATA]
         self._coordinator = hass_data[DIVERA_COORDINATOR]
 
@@ -47,73 +56,127 @@ class DiveraStateSelect(SelectEntity):
         self._icon = "mdi:clock-time-nine-outline"
 
     def select_option(self, option: str) -> None:
-        """Change the selected option."""
+        """Change the selected option.
+
+        Args:
+            option (str): The option to select.
+
+        """
         _LOGGER.info("Status: %s", option)
         sid = self._connector.get_state_id_by_name(option)
         _LOGGER.debug("Status Id: %s", sid)
         self._connector.set_state(sid)
 
     async def async_added_to_hass(self) -> None:
-        """Set up a listener and load data."""
-        self.async_on_remove(
-            self._coordinator.async_add_listener(self.async_write_ha_state)
-        )
+        """Set up a listener and load data.
+
+        This method sets up a listener for state updates and loads data accordingly.
+
+        """
+        self.async_on_remove(self._coordinator.async_add_listener(self.async_write_ha_state))
 
     async def async_update(self):
-        """Schedule a custom update via the common entity update service."""
+        """Schedule a custom update via the common entity update service.
+
+        This method schedules a custom update by requesting a refresh through the coordinator.
+
+        """
         await self._coordinator.async_request_refresh()
 
     @property
     def name(self):
-        """Return the name of the entity."""
+        """Return the name of the sensor.
+
+        Returns:
+            str: The name of the sensor.
+
+        """
         return self._name
 
     @property
     def options(self):
-        """Return the state of the sensor."""
+        """Return the options for the select entity.
+
+        Returns:
+            list: The list of options for the select entity.
+
+        """
         return self._connector.get_all_state_name()
 
     @property
     def current_option(self):
-        """Return the selected entity option to represent the entity state."""
+        """Return the current selected option.
+
+        Returns:
+            str: The currently selected option.
+
+        """
         return self._connector.get_user_state()
 
     @property
     def icon(self):
-        """Return the icon to use in the frontend."""
+        """Return the icon for the entity card.
+
+        Returns:
+            str: The icon for the entity card.
+
+        """
         return self._icon
 
     @property
     def unique_id(self):
-        """Return a unique ID."""
+        """Return the unique ID of the sensor.
+
+        Returns:
+            str: The unique ID of the sensor.
+
+        """
         return self._unique_id
 
     @property
     def extra_state_attributes(self):
-        """Return entity specific state attributes."""
+        """Return the state attributes of the device.
+
+        Returns:
+            dict: The state attributes of the device.
+
+        """
         return self._connector.get_user_state_attributes()
 
     @property
     def should_poll(self) -> bool:
-        """Entities do not individually poll."""
+        """Return whether entities should be polled.
+
+        Returns:
+            bool: False, as entities do not individually poll.
+
+        """
         return False
 
     @property
-    def available(self):
-        """Return True if entity is available."""
+    def available(self) -> bool:
+        """Return whether the component is available.
+
+        Returns:
+            bool: True if the component is available, False otherwise.
+
+        """
         return self._connector.success and self._connector.latest_update is not None
 
     @property
     def device_info(self) -> DeviceInfo:
+        """Return device information.
+
+        Returns:
+            DeviceInfo: Device information object.
+
+        """
         version = self._connector.get_cluster_version()
-        """Return the device info."""
         return DeviceInfo(
-            identifiers={
-                (DOMAIN, self._ucr_id)
-            },
-            serial_number=self._ucr_id,
+            identifiers={(DOMAIN, str(self._ucr_id))},
+            serial_number=str(self._ucr_id),
             name=self._cluster_name,
             manufacturer=DIVERA_GMBH,
             model=INTEGRATION_FULL_NAME,
-            sw_version=version
+            sw_version=version,
         )

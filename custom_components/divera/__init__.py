@@ -1,4 +1,4 @@
-"""The Divera component."""
+"""divera component."""
 
 import asyncio
 import logging
@@ -17,16 +17,25 @@ from .const import (
     DIVERA_COORDINATOR,
     DIVERA_DATA,
     USER_NAME,
-    CLUSTER_NAME, CONF_ACCESSKEY, CONF_FULLNAME, CONF_CLUSTERS
+    CLUSTER_NAME,
+    CONF_ACCESSKEY,
+    CONF_FULLNAME,
+    CONF_CLUSTERS,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.SELECT, Platform.SENSOR]
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up Divera as config entry."""
 
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    """Set up Divera as config entry.
+
+    Args:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (ConfigEntry): The config entry for Divera.
+
+    """
     accesskey: str = entry.data[CONF_ACCESSKEY]
     fullname: str = entry.data[CONF_FULLNAME]
     clusters = entry.data[CONF_CLUSTERS]
@@ -51,7 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             DIVERA_DATA: divera_data,
             DIVERA_COORDINATOR: divera_coordinator,
             USER_NAME: fullname,
-            CLUSTER_NAME: cluster_name
+            CLUSTER_NAME: cluster_name,
         }
 
         # Fetch initial data so we have data when entities subscribe
@@ -60,21 +69,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             raise ConfigEntryNotReady()
 
     for component in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, component)
-        )
+        hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, component))
 
     return True
 
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
-    """Migrate old entry."""
+    """Migrate old entry.
+
+    Args:
+        hass (HomeAssistant): The Home Assistant instance.
+        config_entry (ConfigEntry): The config entry to migrate.
+
+    Returns:
+        bool: True if migration was successful, False otherwise.
+
+    """
     _LOGGER.debug("Migrating from version %s", config_entry.version)
 
     if config_entry.version == 1:
-        new = {**config_entry.data}
-        # new[CONF_UPDATE_INTERVAL] = 24
-        config_entry.data = {**new}
+        new_data = {**config_entry.data}
+        config_entry.data = {**new_data}
         config_entry.version = 2
 
     _LOGGER.info("Migration to version %s successful", config_entry.version)
@@ -82,18 +97,35 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
 
 
 async def async_update(self):
-    """Async wrapper for update method."""
+    """Asynchronously updates the state of the object.
+
+    This method uses Home Assistant's event loop to asynchronously execute the
+    `_update` method within a separate thread.
+
+    Returns:
+        Awaitable: A future representing the result of the update operation.
+
+    Notes:
+        This method is intended to be used in asynchronous contexts.
+
+    """
     return await self._hass.async_add_executor_job(self._update)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Unload a config entry."""
+    """Unload Divera config entry.
+
+    Args:
+        hass (HomeAssistant): The Home Assistant instance.
+        entry (ConfigEntry): The config entry to unload.
+
+    Returns:
+        bool: True if unloading was successful, False otherwise.
+
+    """
     unload_ok = all(
         await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(entry, component)
-                for component in PLATFORMS
-            ]
+            *[hass.config_entries.async_forward_entry_unload(entry, component) for component in PLATFORMS]
         )
     )
     if unload_ok:
