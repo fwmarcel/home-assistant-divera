@@ -137,10 +137,9 @@ class DiveraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return
 
     def setClusterData(self, ucr_ids: list):
-        """
-        Set cluster data for the Divera instance.
+        """Set cluster data for the Divera instance.
 
-        Parameters:
+        Args:
             ucr_ids (list): List of unique cluster IDs.
 
         """
