@@ -13,7 +13,7 @@ from .const import (
     CONF_UCRS,
     CONF_ACCESSKEY,
     CONF_CLUSTERS,
-    CONF_FULLNAME,
+    CONF_FULLNAME, CONF_FLOW_VERSION, CONF_FLOW_MINOR_VERSION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,8 +26,8 @@ class DiveraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     """
 
-    VERSION = 3
-    MINOR_VERSION = 1
+    VERSION = CONF_FLOW_VERSION
+    MINOR_VERSION = CONF_FLOW_MINOR_VERSION
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     data: dict[str, Any] | None
@@ -78,15 +78,11 @@ class DiveraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.data = user_input
                 self.data[CONF_ACCESSKEY] = self.divera_data.get_accesskey()
                 self.data[CONF_FULLNAME] = self.divera_data.get_full_name()
-                self.data[CONF_CLUSTERS] = {}
-                ucr_ids = self.divera_data.get_all_ucrs()
-                for ucr_id in ucr_ids:
-                    self.data[CONF_CLUSTERS][ucr_id] = self.divera_data.get_cluster_name_from_ucr(ucr_id)
-
                 if self.divera_data.get_ucr_count() > 1:
                     return await self.async_step_user_cluster_relation()
                 else:
-                    self.data[CONF_UCRS] = [self.divera_data.get_default_ucr()]
+                    ucr_id: int = self.divera_data.get_default_ucr()
+                    self.setClusterData([ucr_id])
                     return self.create_entry()
 
         accesskey_schema = vol.Schema(
@@ -112,7 +108,8 @@ class DiveraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             if not errors:
-                self.data[CONF_UCRS] = self.divera_data.get_ucr_ids(user_input[CONF_CLUSTERS])
+                ucr_ids = self.divera_data.get_ucr_ids(user_input[CONF_CLUSTERS])
+                self.setClusterData(ucr_ids)
                 return self.create_entry()
 
         cluster_schema = {vol.Required(CONF_CLUSTERS): selector({"select": {"options": clusters, "multiple": True}})}
@@ -138,6 +135,19 @@ class DiveraConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             raise ValueError()
             # TODO raise alternative Error, which is a HomeAssistantError
         return
+
+    def setClusterData(self, ucr_ids: list):
+        """
+        Set cluster data for the Divera instance.
+
+        Parameters:
+            ucr_ids (list): List of unique cluster IDs.
+
+        """
+        self.data[CONF_UCRS] = ucr_ids
+        self.data[CONF_CLUSTERS] = {}
+        for ucr_id in ucr_ids:
+            self.data[CONF_CLUSTERS][ucr_id] = self.divera_data.get_cluster_name_from_ucr(ucr_id)
 
 
 class CannotConnect(exceptions.HomeAssistantError):
