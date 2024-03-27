@@ -141,10 +141,14 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
         new[CONF_ACCESSKEY] = accesskey
 
         fullname: str = new[CONF_NAME]
-        new.pop(CONF_API_KEY)
+        new.pop(CONF_NAME)
         new[CONF_FULLNAME] = fullname
 
         divera_data: DiveraData = DiveraData(hass, accesskey)
+        await divera_data.async_update()
+        if not divera_data.success:
+            _LOGGER.debug("Migration to version %s.%s failed.", config_entry.version, config_entry.minor_version)
+            return False
         ucr_id = divera_data.get_active_ucr()
         new[CONF_UCRS] = [ucr_id]
         new[CONF_CLUSTERS] = {}
