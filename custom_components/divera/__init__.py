@@ -4,7 +4,7 @@ import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import Platform, CONF_API_KEY, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -21,6 +21,8 @@ from .const import (
     CONF_ACCESSKEY,
     CONF_FULLNAME,
     CONF_CLUSTERS,
+    CONF_FLOW_VERSION,
+    CONF_FLOW_MINOR_VERSION
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,29 +75,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     return True
 
-
-async def async_migrate_entry(hass, config_entry: ConfigEntry):
-    """Migrate old entry.
-
-    Args:
-        hass (HomeAssistant): The Home Assistant instance.
-        config_entry (ConfigEntry): The config entry to migrate.
-
-    Returns:
-        bool: True if migration was successful, False otherwise.
-
-    """
-    _LOGGER.debug("Migrating from version %s", config_entry.version)
-
-    if config_entry.version == 1:
-        new_data = {**config_entry.data}
-        config_entry.data = {**new_data}
-        config_entry.version = 2
-
-    _LOGGER.info("Migration to version %s successful", config_entry.version)
-    return True
-
-
 async def async_update(self):
     """Asynchronously updates the state of the object.
 
@@ -133,3 +112,49 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         if not hass.data[DOMAIN]:
             hass.data.pop(DOMAIN)
     return unload_ok
+
+
+async def async_migrate_entry(hass, config_entry: ConfigEntry):
+    """Migrate old entry.
+
+    Args:
+        hass (HomeAssistant): The Home Assistant instance.
+        config_entry (ConfigEntry): The config entry to migrate.
+
+    Returns:
+        bool: True if migration was successful, False otherwise.
+
+    """
+
+    _LOGGER.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version > CONF_FLOW_VERSION or config_entry.minor_version > CONF_FLOW_MINOR_VERSION:
+        # This means the user has downgraded from a future version
+        _LOGGER.debug("Migration to version %s.%s failed. Downgraded ", config_entry.version,
+                      config_entry.minor_version)
+        return False
+
+    new = {**config_entry.data}
+    if config_entry.version < 3:
+        accesskey: str = new.get(CONF_API_KEY)
+        new.pop(CONF_API_KEY)
+        new[CONF_ACCESSKEY] = accesskey
+
+        fullname: str = new[CONF_NAME]
+        new.pop(CONF_NAME)
+        new[CONF_FULLNAME] = fullname
+
+        divera_data: DiveraData = DiveraData(hass, accesskey)
+        await divera_data.async_update()
+        if not divera_data.success:
+            _LOGGER.debug("Migration to version %s.%s failed.", config_entry.version, config_entry.minor_version)
+            return False
+        ucr_id = divera_data.get_active_ucr()
+        new[CONF_UCRS] = [ucr_id]
+        new[CONF_CLUSTERS] = {}
+        new[CONF_CLUSTERS][ucr_id] = divera_data.get_cluster_name_from_ucr(ucr_id)
+
+    hass.config_entries.async_update_entry(config_entry, data=new, minor_version=CONF_FLOW_MINOR_VERSION,
+                                           version=CONF_FLOW_VERSION)
+    _LOGGER.debug("Migration to version %s.%s successful", config_entry.version, config_entry.minor_version)
+    return True
