@@ -33,3 +33,6 @@ VERSION_FREE: str = "Free"
 VERSION_ALARM: str = "Alarm"
 VERSION_PRO: str = "Pro"
 VERSION_UNKNOWN: str = "Unknown"
+
+CONF_FLOW_VERSION: int = 3
+CONF_FLOW_MINOR_VERSION: int = 1
