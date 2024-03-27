@@ -1,3 +1,10 @@
+## [1.0.1-rc.1](https://github.com/fwmarcel/home-assistant-divera/compare/v1.0.0...v1.0.1-rc.1) (2024-03-27)
+
+
+### Bug Fixes :bug:
+
+* adding migration to config flow ([#104](https://github.com/fwmarcel/home-assistant-divera/issues/104)) ([f7998ca](https://github.com/fwmarcel/home-assistant-divera/commit/f7998ca3699852cc26382e9a5591d6eb78c50730))
+
 ## 1.0.0 (2024-03-26)
 
 ### ⚠ BREAKING CHANGES
