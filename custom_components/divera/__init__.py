@@ -6,7 +6,6 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, CONF_API_KEY, CONF_NAME
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .connector import DiveraData
@@ -47,7 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     divera_hass_data[entry.entry_id] = {}
 
     for ucr_id in ucr_ids:
-        cluster_name: str = clusters[str(ucr_id)]
+        cluster_name: str = clusters.get(str(ucr_id))
 
         divera_data = DiveraData(hass, accesskey, ucr_id)
         divera_coordinator = DataUpdateCoordinator(
@@ -66,9 +65,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         }
 
         # Fetch initial data so we have data when entities subscribe
-        await divera_coordinator.async_refresh()
-        if not divera_data.success:
-            raise ConfigEntryNotReady()
+        await divera_coordinator.async_config_entry_first_refresh()
 
     for component in PLATFORMS:
         hass.async_create_task(hass.config_entries.async_forward_entry_setup(entry, component))
