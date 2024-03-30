@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import datetime
 
-import requests
+import httpx
 from homeassistant.const import STATE_UNKNOWN
 
 from .const import (
@@ -18,6 +18,7 @@ from .const import (
     VERSION_FREE,
     VERSION_PRO,
 )
+from .utils import remove_accesskey
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -72,21 +73,28 @@ class DiveraData:
         timestamp = datetime.now()
 
         if not self.accesskey:
-            _LOGGER.exception("No update possible")
+            _LOGGER.error("No update possible")
         else:
-            params = {ACCESSKEY: self.accesskey}
+            params = {ACCESSKEY: "test"}
             if self.ucr_id is not None:
                 params["ucr"] = self.ucr_id
             try:
-                response = requests.get(DIVERA_URL, params=params, timeout=DEFAULT_TIMEOUT)
+                response = httpx.get(DIVERA_URL, params=params, timeout=DEFAULT_TIMEOUT)
+                response.raise_for_status()
                 self.data = response.json()
                 self.success = response.status_code == 200
-            except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("Error: %s", ex)
-                self.success = False
-            else:
                 self.latest_update = timestamp
-            _LOGGER.debug("Values updated at %s", self.latest_update)
+                _LOGGER.debug("Values updated at %s", self.latest_update)
+            except httpx.RequestError as exc:
+                url = remove_accesskey(exc.request.url)
+                _LOGGER.error(f"An error occurred while requesting {url!r}.")
+                self.success = False
+            except httpx.HTTPStatusError as exc:
+                url = remove_accesskey(exc.request.url)
+                _LOGGER.error(f"Error response {exc.response.status_code} while requesting {url!r}.")
+                # 403 auth error
+                self.success = False
+
 
     def get_full_name(self) -> str:
         """Retrieve the full name of the user associated with the data.
@@ -454,11 +462,11 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["user"]["email"]
+        return self.data.get["data"]["user"]["email"]
 
     def set_state(self, state_id):
         """Set the state of the user to the given id."""
-        payload = json.dumps({"Status": {"id": state_id}})
+        data = json.dumps({"Status": {"id": state_id}})
         headers = {"Content-Type": "application/json"}
 
         if not self.accesskey:
@@ -466,17 +474,22 @@ class DiveraData:
         else:
             params = {ACCESSKEY: self.accesskey, UCR: self.ucr_id}
             try:
-                response = requests.post(
+                response = httpx.post(
                     DIVERA_STATUS_URL,
                     params=params,
                     headers=headers,
                     timeout=DEFAULT_TIMEOUT,
-                    data=payload,
+                    data=data,
                 )
-                if response.status_code != 200:
-                    _LOGGER.error("error while setting the state %s", response.status_code)
-            except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("Error: %s", ex)
+                response.raise_for_status()
+            except httpx.RequestError as exc:
+                url = remove_accesskey(exc.request.url)
+                _LOGGER.error(f"An error occurred while requesting {url!r}.")
+            except httpx.HTTPStatusError as exc:
+                url = remove_accesskey(exc.request.url)
+                _LOGGER.error(f"Error response {exc.response.status_code} while requesting {url!r}.")
+                # 403 auth error
+
 
     def get_cluster_version(self) -> str:
         """Retrieve the version of the cluster.
