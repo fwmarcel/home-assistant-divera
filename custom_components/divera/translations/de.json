@@ -17,11 +17,28 @@
     },
     "error": {
       "cannot_connect": "Fehler bei der Verbindung.",
-      "auth": "Fehler bei der Authentifizierung.",
+      "authentication": "Fehler bei der Authentifizierung.",
       "unknown": "Unbekannter Fehler"
     },
     "abort": {
       "already_configured": "Dieser Benutzer ist bereits konfiguriert."
+    }
+  },
+  "exceptions": {
+    "user_state_error": {
+      "message": "Fehler beim Ändern des Benutzer Status von {cluster_name}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alarm": {
+        "name": "Alarm"
+      }
+    },
+    "select": {
+      "user_status": {
+        "name": "Benutzer Status"
+      }
     }
   }
 }

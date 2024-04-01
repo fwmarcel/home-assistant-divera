@@ -17,11 +17,28 @@
     },
     "error": {
       "cannot_connect": "Error during connection.",
-      "auth": "Error during authentication.",
+      "authentication": "Error during authentication.",
       "unknown": "Unknown Error"
     },
     "abort": {
       "already_configured": "This User is already configured."
+    }
+  },
+  "exceptions": {
+    "user_state_error": {
+      "message": "Error when changing the user status in {cluster_name}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alarm": {
+        "name": "Alarm"
+      }
+    },
+    "select": {
+      "user_status": {
+        "name": "User Status"
+      }
     }
   }
 }

@@ -1,6 +1,8 @@
 """constants for divera integration."""
-
+import logging
 from datetime import timedelta
+
+LOGGER = logging.getLogger(__package__)
 
 DOMAIN: str = "divera"
 
@@ -11,23 +13,23 @@ DIVERA_GMBH: str = "Divera GmbH"
 ATTR_NAME: str = "state"
 ATTR_LATEST_UPDATE: str = "latest_update_utc"
 DIVERA_DATA: str = "divera_data"
-DIVERA_COORDINATOR: str = "divera_coordinator"
+DATA_DIVERA_COORDINATOR: str = "divera_coordinator"
 USER_NAME: str = "user_name"
 
-DEFAULT_TIMEOUT = 10
-DIVERA_URL: str = "https://www.divera247.com/api/v2/pull/all"
-DIVERA_STATUS_URL: str = "https://www.divera247.com/api/v2/statusgeber/set-status"
+DIVERA_BASE_URL: str = "https://www.divera247.com"
+DIVERA_API_PULL_PATH: str = "/api/v2/pull/all"
+DIVERA_API_STATUS_PATH: str = "/api/v2/statusgeber/set-status"
 
-DEFAULT_SCAN_INTERVAL: timedelta = timedelta(minutes=1)
+DEFAULT_UPDATE_INTERVAL: timedelta = timedelta(minutes=1)
 
-CONF_ACCESSKEY: str = "accesskey"
-CONF_FULLNAME: str = "fullname"
+DATA_ACCESSKEY: str = "accesskey"
+DATA_UCRS: str = "ucrs"
+
 CONF_CLUSTERS: str = "clusters"
-CONF_UCRS: str = "ucrs"
+CONF_ACCESSKEY: str = "accesskey"
 
-CLUSTER_NAME: str = "cluster_name"
-ACCESSKEY: str = "accesskey"
-UCR: str = "ucr"
+PARAM_ACCESSKEY: str = "accesskey"
+PARAM_UCR: str = "ucr"
 
 VERSION_FREE: str = "Free"
 VERSION_ALARM: str = "Alarm"
@@ -36,3 +38,6 @@ VERSION_UNKNOWN: str = "Unknown"
 
 CONF_FLOW_VERSION: int = 3
 CONF_FLOW_MINOR_VERSION: int = 1
+
+ERROR_AUTH = "authentication"
+ERROR_CONNECTION = "cannot_connect"
