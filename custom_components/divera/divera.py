@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from http.client import UNAUTHORIZED
+from typing import List
 
 from homeassistant.const import STATE_UNKNOWN
 from httpx import AsyncClient, RequestError, HTTPStatusError
@@ -366,6 +367,19 @@ class DiveraClient:
 
         """
         return list(self.__data["data"]["ucr"])
+
+    def get_cluster_names_from_ucrs(self, ucr_ids: List[int]) -> List[str]:
+        """
+        Get cluster names from a list of UCR IDs.
+
+        Args:
+            ucr_ids (List[int]): List of UCR IDs.
+
+        Returns:
+            List[str]: List of cluster names corresponding to the given UCR IDs.
+        """
+        return list(map(lambda id: self.get_cluster_name_from_ucr(id), ucr_ids))
+
 
     def get_cluster_name_from_ucr(self, ucr_id) -> str:
         """Retrieve the name of the cluster associated with the given User Cluster Relation (UCR) ID.

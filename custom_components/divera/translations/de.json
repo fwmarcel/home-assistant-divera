@@ -2,7 +2,7 @@
   "title": "Divera 24/7",
   "config": {
     "step": {
-      "user": {
+      "accesskey": {
         "data": {
           "accesskey": "Accesskey"
         },
