@@ -2,11 +2,13 @@
   "title": "Divera 24/7",
   "config": {
     "step": {
-      "accesskey": {
+      "api": {
+        "title": "Divera 24/7 Einrichtung",
+        "description": "Der Zugangsschlüssel wird verwendet, um die Daten von den Servern abzurufen. Sie finden Ihren Zugangsschlüssel in Ihren Einstellungen unter dem Punkt Debug.",
         "data": {
-          "accesskey": "Accesskey"
-        },
-        "description": "Der Zugangsschlüssel wird verwendet, um die Daten von den Servern abzurufen. Sie finden Ihren Zugangsschlüssel in Ihren Einstellungen unter dem Punkt Debug."
+          "accesskey": "Accesskey",
+          "base_url": "Server Adresse"
+        }
       },
       "user_cluster_relation": {
         "data": {
@@ -24,20 +26,20 @@
       "already_configured": "Dieser Benutzer ist bereits konfiguriert."
     }
   },
-  "exceptions": {
-    "user_state_error": {
-      "message": "Fehler beim Ändern des Benutzer Status von {cluster_name}"
-    }
-  },
   "options": {
     "step": {
       "scan_interval": {
-        "title": "Divera Optionen",
+        "title": "Divera 24/7 Optionen",
         "description": "Das Update Interval muss zwischen 10 und 300 Sekunden liegen. Ein zu klein gewähltes Interval führt evt. zu Problemen.",
         "data": {
           "scan_interval": "Update Interval (Sekunden)"
         }
       }
+    }
+  },
+  "exceptions": {
+    "user_state_error": {
+      "message": "Fehler beim Ändern des Benutzer Status von {cluster_name}"
     }
   },
   "entity": {

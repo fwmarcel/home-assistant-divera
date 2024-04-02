@@ -18,7 +18,8 @@ class DiveraCoordinator(DataUpdateCoordinator):
 
     """
 
-    def __init__(self, hass, accesskey: str, ucr_id: str = None, update_interval: int | None = None) -> None:
+    def __init__(self, hass, accesskey: str, base_url: str, ucr_id: str = None,
+                 update_interval: int | None = None) -> None:
         """Initialize DiveraCoordinator.
 
         Args:
@@ -33,7 +34,7 @@ class DiveraCoordinator(DataUpdateCoordinator):
             name=f"Divera Coordinator {ucr_id}",
             update_interval=timedelta(seconds=update_interval),
         )
-        self.divera_client = DiveraClient(accesskey=accesskey, ucr_id=ucr_id)
+        self.divera_client = DiveraClient(accesskey=accesskey, base_url=base_url, ucr_id=ucr_id)
 
     async def _async_update_data(self):
         try:

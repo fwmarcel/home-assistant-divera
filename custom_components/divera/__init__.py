@@ -11,7 +11,8 @@ from .const import (
     DOMAIN,
     DATA_DIVERA_COORDINATOR,
     CONF_FLOW_VERSION,
-    CONF_FLOW_MINOR_VERSION, LOGGER, DATA_ACCESSKEY, DEFAULT_SCAN_INTERVAL, DATA_SCAN_INTERVAL
+    CONF_FLOW_MINOR_VERSION, LOGGER, DATA_ACCESSKEY, DEFAULT_SCAN_INTERVAL, DATA_SCAN_INTERVAL, DATA_BASE_URL,
+    DIVERA_BASE_URL
 )
 from .coordinator import DiveraCoordinator
 from .divera import DiveraClient, DiveraError
@@ -30,16 +31,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         entry (ConfigEntry): The config entry for Divera.
 
     """
-    accesskey: str = entry.data[DATA_ACCESSKEY]
-    ucr_ids = entry.data[DATA_UCRS]
-
+    accesskey: str = entry.data.get(DATA_ACCESSKEY)
+    ucr_ids = entry.data.get(DATA_UCRS)
+    base_url = entry.data.get(DATA_BASE_URL, DIVERA_BASE_URL)
     update_interval = entry.options.get(DATA_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
     divera_hass_data = hass.data.setdefault(DOMAIN, {})
     divera_hass_data[entry.entry_id] = {}
 
     for ucr_id in ucr_ids:
-        divera_coordinator = DiveraCoordinator(hass, accesskey, ucr_id, update_interval)
+        divera_coordinator = DiveraCoordinator(hass, accesskey, base_url=base_url, ucr_id=ucr_id,
+                                               update_interval=update_interval)
         divera_hass_data[entry.entry_id][ucr_id] = {
             DATA_DIVERA_COORDINATOR: divera_coordinator
         }

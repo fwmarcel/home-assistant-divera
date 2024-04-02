@@ -2,11 +2,13 @@
   "title": "Divera 24/7",
   "config": {
     "step": {
-      "accesskey": {
+      "api": {
+        "title": "Divera 24/7 Setup",
+        "description": "The accesskey will be used to pull the data from the servers. You can found your accesskey in your settings under debug item.",
         "data": {
-          "accesskey": "Accesskey"
-        },
-        "description": "The accesskey will be used to pull the data from the servers. You can found your accesskey in your settings under debug item."
+          "accesskey": "Accesskey",
+          "base_url": "Server Address"
+        }
       },
       "user_cluster_relation": {
         "data": {
@@ -27,7 +29,7 @@
   "options": {
     "step": {
       "scan_interval": {
-        "title": "Divera Options",
+        "title": "Divera 24/7 Options",
         "description": "The update interval must be between 10 and 300 seconds. If the interval is too short, this may lead to problems.",
         "data": {
           "scan_interval": "Update Interval (seconds)"

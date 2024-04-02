@@ -75,6 +75,9 @@ class DiveraClient:
             else:
                 raise DiveraConnectionError from None
 
+    def get_base_url(self) -> str:
+        return self.__base_url
+
     def get_full_name(self) -> str:
         """Retrieve the full name of the user associated with the data.
 

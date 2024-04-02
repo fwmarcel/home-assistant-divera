@@ -5,13 +5,14 @@ from typing import Any, Dict
 from homeassistant.config_entries import OptionsFlow, ConfigFlow, ConfigEntry, HANDLERS
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowHandler
-from homeassistant.helpers.selector import SelectSelectorConfig, SelectSelector
-from voluptuous import Required, Schema, All, Coerce, Range
+from homeassistant.helpers.selector import SelectSelectorConfig, SelectSelector, TextSelectorConfig, TextSelectorType, \
+    TextSelector
+from voluptuous import Required, Optional, Schema, All, Coerce, Range
 
 from .const import (
     DOMAIN, DATA_UCRS, CONF_FLOW_VERSION, CONF_FLOW_MINOR_VERSION, ERROR_AUTH, ERROR_CONNECTION,
-    DATA_ACCESSKEY, CONF_CLUSTERS, CONF_ACCESSKEY, CONF_FLOW_NAME_UCR, CONF_FLOW_NAME_ACCESSKEY, DEFAULT_SCAN_INTERVAL,
-    DATA_SCAN_INTERVAL, CONF_SCAN_INTERVAL, CONF_FLOW_NAME_SCAN_INTERVAL
+    DATA_ACCESSKEY, CONF_CLUSTERS, CONF_ACCESSKEY, CONF_FLOW_NAME_UCR, CONF_FLOW_NAME_API, DEFAULT_SCAN_INTERVAL,
+    DATA_SCAN_INTERVAL, CONF_SCAN_INTERVAL, CONF_FLOW_NAME_SCAN_INTERVAL, CONF_BASE_URL, DIVERA_BASE_URL, DATA_BASE_URL
 )
 from .divera import DiveraClient, DiveraAuthError, DiveraConnectionError, DiveraError
 
@@ -42,6 +43,7 @@ class DiveraFlow(FlowHandler):
 
         """
         self._data[DATA_UCRS] = ucr_ids
+        self._data[DATA_BASE_URL] = self._divera_client.get_base_url()
         self._data[DATA_ACCESSKEY] = self._divera_client.get_accesskey()
 
         title = self._divera_client.get_full_name()
@@ -77,14 +79,15 @@ class DiveraConfigFlow(DiveraFlow, ConfigFlow):
             dict: The next step or form to present to the user.
 
         """
-        return await self.async_step_accesskey(user_input)
+        return await self.async_step_api(user_input)
 
-    async def async_step_accesskey(self, user_input: dict[str, Any] | None = None):
+    async def async_step_api(self, user_input: dict[str, Any] | None = None):
         errors: dict[str, str] = {}
 
         if user_input is not None:
             accesskey = user_input.get(CONF_ACCESSKEY)
-            self._divera_client = DiveraClient(accesskey)
+            base_url = user_input.get(CONF_BASE_URL)
+            self._divera_client = DiveraClient(accesskey, base_url)
             try:
                 await self._divera_client.pull_data()
             except DiveraAuthError:
@@ -100,16 +103,18 @@ class DiveraConfigFlow(DiveraFlow, ConfigFlow):
                     ucr_id: int = self._divera_client.get_default_ucr()
                     return self.create_entry([ucr_id])
 
-        return await self._show_accesskey_form(errors)
-
-    async def _show_accesskey_form(self, errors):
-        accesskey_schema = Schema(
+        api_schema = Schema(
             {
                 Required(CONF_ACCESSKEY, default=""): str,
+                Optional(CONF_BASE_URL, description={"suggested_value": DIVERA_BASE_URL}): TextSelector(
+                    TextSelectorConfig(
+                        type=TextSelectorType.URL
+                    )
+                )
             },
         )
         return self.async_show_form(
-            step_id=CONF_FLOW_NAME_ACCESSKEY, data_schema=accesskey_schema, errors=errors
+            step_id=CONF_FLOW_NAME_API, data_schema=api_schema, errors=errors
         )
 
     async def async_step_user_cluster_relation(self, user_input: dict[str, Any] | None = None):
@@ -166,7 +171,8 @@ class DiveraOptionsFlowHandler(OptionsFlow, DiveraFlow):
                 return self.create_entry(ucr_ids)
 
         accesskey = self._config_entry.data[DATA_ACCESSKEY]
-        self._divera_client = DiveraClient(accesskey=accesskey)
+        base_url = self._config_entry.data.get(DATA_BASE_URL, DIVERA_BASE_URL)
+        self._divera_client = DiveraClient(accesskey, base_url)
 
         try:
             await self._divera_client.pull_data()
@@ -183,7 +189,7 @@ class DiveraOptionsFlowHandler(OptionsFlow, DiveraFlow):
     async def async_step_scan_interval(self, user_input: dict[str, Any] | None = None):
         """Handle options flow."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(data=user_input)
 
         scan_interval = self._config_entry.options.get(
             DATA_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
