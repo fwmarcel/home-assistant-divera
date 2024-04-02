@@ -1,9 +1,10 @@
 """Coordinator Module for Divera Integration."""
+from datetime import timedelta
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from custom_components.divera.const import LOGGER, DEFAULT_UPDATE_INTERVAL
+from custom_components.divera.const import LOGGER
 from custom_components.divera.divera import DiveraClient, DiveraConnectionError, DiveraAuthError
 
 
@@ -17,7 +18,7 @@ class DiveraCoordinator(DataUpdateCoordinator):
 
     """
 
-    def __init__(self, hass, accesskey: str, ucr_id: str = None) -> None:
+    def __init__(self, hass, accesskey: str, ucr_id: str = None, update_interval: int | None = None) -> None:
         """Initialize DiveraCoordinator.
 
         Args:
@@ -30,7 +31,7 @@ class DiveraCoordinator(DataUpdateCoordinator):
             hass,
             LOGGER,
             name=f"Divera Coordinator {ucr_id}",
-            update_interval=DEFAULT_UPDATE_INTERVAL,
+            update_interval=timedelta(seconds=update_interval),
         )
         self.divera_client = DiveraClient(accesskey=accesskey, ucr_id=ucr_id)
 

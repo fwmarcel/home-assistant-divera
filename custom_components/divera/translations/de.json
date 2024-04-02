@@ -29,6 +29,17 @@
       "message": "Fehler beim Ändern des Benutzer Status von {cluster_name}"
     }
   },
+  "options": {
+    "step": {
+      "scan_interval": {
+        "title": "Divera Optionen",
+        "description": "Das Update Interval muss zwischen 10 und 300 Sekunden liegen. Ein zu klein gewähltes Interval führt evt. zu Problemen.",
+        "data": {
+          "scan_interval": "Update Interval (Sekunden)"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "alarm": {

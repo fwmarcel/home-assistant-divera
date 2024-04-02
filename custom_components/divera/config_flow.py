@@ -3,13 +3,15 @@
 from typing import Any, Dict
 
 from homeassistant.config_entries import OptionsFlow, ConfigFlow, ConfigEntry, HANDLERS
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowHandler
 from homeassistant.helpers.selector import SelectSelectorConfig, SelectSelector
-from voluptuous import Required, Schema
+from voluptuous import Required, Schema, All, Coerce, Range
 
 from .const import (
     DOMAIN, DATA_UCRS, CONF_FLOW_VERSION, CONF_FLOW_MINOR_VERSION, ERROR_AUTH, ERROR_CONNECTION,
-    DATA_ACCESSKEY, CONF_CLUSTERS, CONF_ACCESSKEY, CONF_FLOW_NAME_UCR, CONF_FLOW_NAME_ACCESSKEY
+    DATA_ACCESSKEY, CONF_CLUSTERS, CONF_ACCESSKEY, CONF_FLOW_NAME_UCR, CONF_FLOW_NAME_ACCESSKEY, DEFAULT_SCAN_INTERVAL,
+    DATA_SCAN_INTERVAL, CONF_SCAN_INTERVAL, CONF_FLOW_NAME_SCAN_INTERVAL
 )
 from .divera import DiveraClient, DiveraAuthError, DiveraConnectionError, DiveraError
 
@@ -60,10 +62,10 @@ class DiveraConfigFlow(DiveraFlow, ConfigFlow):
     def __init__(self):
         super().__init__()
 
-    # @staticmethod
-    # @callback
-    # def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-    #     return DiveraOptionsFlowHandler(config_entry)
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return DiveraOptionsFlowHandler(config_entry)
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         """Handle the initial step.
@@ -152,7 +154,7 @@ class DiveraOptionsFlowHandler(OptionsFlow, DiveraFlow):
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        return await self.async_step_user_cluster_relation(user_input)
+        return await self.async_step_scan_interval(user_input)
 
     async def async_step_user_cluster_relation(self, user_input: dict[str, Any] | None = None):
         errors: Dict[str, str] = {}
@@ -177,3 +179,24 @@ class DiveraOptionsFlowHandler(OptionsFlow, DiveraFlow):
         active_cluster_names = self._divera_client.get_cluster_names_from_ucrs(active_ucr_ids)
 
         return await self._show_clusters_form(active_cluster_names, cluster_names, errors)
+
+    async def async_step_scan_interval(self, user_input: dict[str, Any] | None = None):
+        """Handle options flow."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        scan_interval = self._config_entry.options.get(
+            DATA_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        )
+
+        interval_schema = Schema(
+            {
+                Required(CONF_SCAN_INTERVAL, default=scan_interval): All(
+                    Coerce(int), Range(min=10, max=300)
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id=CONF_FLOW_NAME_SCAN_INTERVAL, data_schema=interval_schema
+        )

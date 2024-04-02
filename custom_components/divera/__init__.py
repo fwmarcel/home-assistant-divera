@@ -11,7 +11,7 @@ from .const import (
     DOMAIN,
     DATA_DIVERA_COORDINATOR,
     CONF_FLOW_VERSION,
-    CONF_FLOW_MINOR_VERSION, LOGGER, DATA_ACCESSKEY
+    CONF_FLOW_MINOR_VERSION, LOGGER, DATA_ACCESSKEY, DEFAULT_SCAN_INTERVAL, DATA_SCAN_INTERVAL
 )
 from .coordinator import DiveraCoordinator
 from .divera import DiveraClient, DiveraError
@@ -33,20 +33,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     accesskey: str = entry.data[DATA_ACCESSKEY]
     ucr_ids = entry.data[DATA_UCRS]
 
+    update_interval = entry.options.get(DATA_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+
     divera_hass_data = hass.data.setdefault(DOMAIN, {})
     divera_hass_data[entry.entry_id] = {}
 
     for ucr_id in ucr_ids:
-        divera_coordinator = DiveraCoordinator(hass, accesskey, ucr_id)
+        divera_coordinator = DiveraCoordinator(hass, accesskey, ucr_id, update_interval)
         divera_hass_data[entry.entry_id][ucr_id] = {
             DATA_DIVERA_COORDINATOR: divera_coordinator
         }
 
         await divera_coordinator.async_config_entry_first_refresh()
 
+    entry.async_on_unload(entry.add_update_listener(async_update_listener))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
+
+
+async def async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
@@ -70,6 +78,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         if not hass.data[DOMAIN]:
             hass.data.pop(DOMAIN)
     return unload_ok
+
 
 async def async_migrate_entry(hass, config_entry: ConfigEntry):
     """Migrate old entry.

@@ -1,6 +1,5 @@
 """constants for divera integration."""
 import logging
-from datetime import timedelta
 
 LOGGER = logging.getLogger(__package__)
 
@@ -20,13 +19,15 @@ DIVERA_BASE_URL: str = "https://www.divera247.com"
 DIVERA_API_PULL_PATH: str = "/api/v2/pull/all"
 DIVERA_API_STATUS_PATH: str = "/api/v2/statusgeber/set-status"
 
-DEFAULT_UPDATE_INTERVAL: timedelta = timedelta(minutes=1)
+DEFAULT_SCAN_INTERVAL: int = 60
 
 DATA_ACCESSKEY: str = "accesskey"
 DATA_UCRS: str = "ucrs"
+DATA_SCAN_INTERVAL: str = "scan_interval"
 
 CONF_CLUSTERS: str = "clusters"
 CONF_ACCESSKEY: str = "accesskey"
+CONF_SCAN_INTERVAL: str = "scan_interval"
 
 PARAM_ACCESSKEY: str = "accesskey"
 PARAM_UCR: str = "ucr"
@@ -40,6 +41,7 @@ CONF_FLOW_VERSION: int = 3
 CONF_FLOW_MINOR_VERSION: int = 1
 CONF_FLOW_NAME_UCR: str = "user_cluster_relation"
 CONF_FLOW_NAME_ACCESSKEY: str = "accesskey"
+CONF_FLOW_NAME_SCAN_INTERVAL: str = "scan_interval"
 
 ERROR_AUTH = "authentication"
 ERROR_CONNECTION = "cannot_connect"

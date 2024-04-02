@@ -24,6 +24,17 @@
       "already_configured": "This User is already configured."
     }
   },
+  "options": {
+    "step": {
+      "scan_interval": {
+        "title": "Divera Options",
+        "description": "The update interval must be between 10 and 300 seconds. If the interval is too short, this may lead to problems.",
+        "data": {
+          "scan_interval": "Update Interval (seconds)"
+        }
+      }
+    }
+  },
   "exceptions": {
     "user_state_error": {
       "message": "Error when changing the user status in {cluster_name}"
