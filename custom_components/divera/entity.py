@@ -63,7 +63,7 @@ class DiveraEntity(CoordinatorEntity[DiveraCoordinator]):
         self._attr_unique_id = "_".join(
             [
                 DOMAIN,
-                self._ucr_id,
+                str(self._ucr_id),
                 description.key,
             ]
         )
