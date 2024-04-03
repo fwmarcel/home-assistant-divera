@@ -57,13 +57,13 @@ class DiveraEntity(CoordinatorEntity[DiveraCoordinator]):
         super().__init__(coordinator)
         self.entity_description = description
 
-        self.ucr_id = self.coordinator.data.get_active_ucr()
-        self.cluster_name = self.coordinator.data.get_cluster_name_from_ucr(self.ucr_id)
+        self._ucr_id = self.coordinator.data.get_active_ucr()
+        self._cluster_name = self.coordinator.data.get_cluster_name_from_ucr(self._ucr_id)
 
         self._attr_unique_id = "_".join(
             [
                 DOMAIN,
-                self.cluster_name,
+                self._ucr_id,
                 description.key,
             ]
         )
@@ -93,11 +93,11 @@ class DiveraEntity(CoordinatorEntity[DiveraCoordinator]):
             identifiers={
                 (
                     DOMAIN,
-                    str(self.ucr_id),
+                    str(self._ucr_id),
                 )
             },
             manufacturer=DIVERA_GMBH,
-            name=self.cluster_name,
+            name=self._cluster_name,
             model=version,
             configuration_url=config_url,
         )

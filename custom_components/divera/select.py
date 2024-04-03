@@ -130,6 +130,6 @@ class DiveraSelectEntity(DiveraEntity, SelectEntity):
                 translation_domain=DOMAIN,
                 translation_key="user_state_error",
                 translation_placeholders={
-                    "cluster_name": self.cluster_name,
+                    "cluster_name": self._cluster_name,
                 },
             ) from exc
