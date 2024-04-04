@@ -5,6 +5,7 @@ from typing import Any, Dict
 from homeassistant.config_entries import OptionsFlow, ConfigFlow, ConfigEntry, HANDLERS
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowHandler
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import SelectSelectorConfig, SelectSelector, TextSelectorConfig, TextSelectorType, \
     TextSelector
 from voluptuous import Required, Optional, Schema, All, Coerce, Range
@@ -81,13 +82,17 @@ class DiveraConfigFlow(DiveraFlow, ConfigFlow):
         """
         return await self.async_step_api(user_input)
 
+    async def async_step_reauth(self, user_input: dict[str, Any] | None = None):
+        return await self.async_step_api(user_input)
+
     async def async_step_api(self, user_input: dict[str, Any] | None = None):
         errors: dict[str, str] = {}
 
         if user_input is not None:
             accesskey = user_input.get(CONF_ACCESSKEY)
             base_url = user_input.get(CONF_BASE_URL)
-            self._divera_client = DiveraClient(accesskey, base_url)
+            websession = async_get_clientsession(self.hass)
+            self._divera_client = DiveraClient(websession, accesskey, base_url)
             try:
                 await self._divera_client.pull_data()
             except DiveraAuthError:
@@ -171,8 +176,9 @@ class DiveraOptionsFlowHandler(OptionsFlow, DiveraFlow):
                 return self.create_entry(ucr_ids)
 
         accesskey = self._config_entry.data[DATA_ACCESSKEY]
-        base_url = self._config_entry.data.get(DATA_BASE_URL, DIVERA_BASE_URL)
-        self._divera_client = DiveraClient(accesskey, base_url)
+        base_url = self._config_entry.data.get(DATA_BASE_URL, DIVERA_BASE_URL)  #
+        websession = async_get_clientsession(self.hass)
+        self._divera_client = DiveraClient(websession, accesskey, base_url)
 
         try:
             await self._divera_client.pull_data()

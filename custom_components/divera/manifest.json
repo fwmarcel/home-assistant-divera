@@ -5,14 +5,8 @@
     "@fwmarcel"
   ],
   "config_flow": true,
-  "dependencies": [
-    "http"
-  ],
   "documentation": "https://github.com/fwmarcel/home-assistant-divera",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/fwmarcel/home-assistant-divera/issues",
-  "requirements": [
-    "httpx==0.27.0"
-  ],
   "version": "0.0.0"
 }

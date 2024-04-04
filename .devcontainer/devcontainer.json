@@ -1,6 +1,6 @@
 {
   "name": "home-assistant-divera",
-  "image": "python:3.11.8",
+  "image": "python:3.12.2",
   "postCreateCommand": "scripts/setup.sh",
   "forwardPorts": [
     8123

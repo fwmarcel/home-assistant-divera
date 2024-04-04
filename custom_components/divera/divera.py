@@ -4,8 +4,8 @@ from datetime import datetime
 from http.client import UNAUTHORIZED
 from typing import List
 
+from aiohttp import ClientError, ClientResponseError
 from homeassistant.const import STATE_UNKNOWN
-from httpx import AsyncClient, RequestError, HTTPStatusError
 
 from .const import (
     DIVERA_API_STATUS_PATH,
@@ -23,7 +23,7 @@ from .utils import remove_params_from_url
 class DiveraClient:
     """Represents a client for interacting with the Divera API."""
 
-    def __init__(self, accesskey, base_url=DIVERA_BASE_URL, ucr_id=None) -> None:
+    def __init__(self, session, accesskey, base_url=DIVERA_BASE_URL, ucr_id=None) -> None:
         """Initialize DiveraClient.
 
         Args:
@@ -32,7 +32,7 @@ class DiveraClient:
             ucr_id (str, optional): Unique identifier for the organization. Defaults to None.
 
         """
-
+        self.__session = session
         self.__data = None
         self.__accesskey = accesskey
         self.__base_url = base_url
@@ -59,21 +59,22 @@ class DiveraClient:
         if self.__ucr_id is not None:
             params[PARAM_UCR] = self.__ucr_id
         try:
-            async with AsyncClient(http2=True) as client:
-                response = await client.get(url=url, params=params)
+            async with self.__session.get(url=url, params=params) as response:
                 response.raise_for_status()
-            self.__data = response.json()
-        except RequestError as exc:
-            url = remove_params_from_url(exc.request.url)
-            LOGGER.error(f"An error occurred while requesting {url!r}.")
-            raise DiveraConnectionError from None
-        except HTTPStatusError as exc:
-            url = remove_params_from_url(exc.request.url)
+                self.__data = await response.json()
+        except ClientResponseError as exc:
+            # TODO Exception Tests
+            url = remove_params_from_url(exc.request_info.url)
             LOGGER.error(f"Error response {exc.response.status_code} while requesting {url!r}.")
             if exc.response.status_code == UNAUTHORIZED:
                 raise DiveraAuthError from None
             else:
                 raise DiveraConnectionError from None
+        except ClientError as exc:
+            url = remove_params_from_url(exc.request.url)
+            LOGGER.error(f"An error occurred while requesting {url!r}.")
+            raise DiveraConnectionError from None
+
 
     def get_base_url(self) -> str:
         return self.__base_url
@@ -383,7 +384,6 @@ class DiveraClient:
         """
         return list(map(lambda id: self.get_cluster_name_from_ucr(id), ucr_ids))
 
-
     def get_cluster_name_from_ucr(self, ucr_id) -> str:
         """Retrieve the name of the cluster associated with the given User Cluster Relation (UCR) ID.
 
@@ -479,18 +479,13 @@ class DiveraClient:
             ])
 
         try:
-            async with AsyncClient(http2=True) as client:
-                response = await client.post(
-                    url=url,
-                    params=params,
-                    json=state,
-                )
+            async with self.__session.post(url=url, params=params, json=state) as response:
                 response.raise_for_status()
-        except RequestError as exc:
+        except ClientError as exc:
             url = remove_params_from_url(exc.request.url)
             LOGGER.error(f"An error occurred while requesting {url!r}.")
             raise DiveraConnectionError from None
-        except HTTPStatusError as exc:
+        except ClientResponseError as exc:
             url = remove_params_from_url(exc.request.url)
             LOGGER.error(f"Error response {exc.response.status_code} while requesting {url!r}.")
             if exc.response.status_code == UNAUTHORIZED:
@@ -532,6 +527,12 @@ class DiveraClient:
         """
         sid = self.get_state_id_by_name(option)
         await self.set_user_state_by_id(sid)
+
+    def get_vehicle(self, vehicle_id):
+        pass
+
+    def get_vehicle(self, vehicle_id):
+        pass
 
 
 class DiveraError(Exception):

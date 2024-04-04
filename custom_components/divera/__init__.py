@@ -5,6 +5,7 @@ import asyncio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform, CONF_API_KEY, CONF_NAME
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     DATA_UCRS,
@@ -39,19 +40,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     divera_hass_data = hass.data.setdefault(DOMAIN, {})
     divera_hass_data[entry.entry_id] = {}
 
+    websession = async_get_clientsession(hass)
+    tasks = []
     for ucr_id in ucr_ids:
-        divera_coordinator = DiveraCoordinator(hass, accesskey, base_url=base_url, ucr_id=ucr_id,
+        divera_coordinator = DiveraCoordinator(hass, websession, accesskey, base_url=base_url, ucr_id=ucr_id,
                                                update_interval=update_interval)
         divera_hass_data[entry.entry_id][ucr_id] = {
             DATA_DIVERA_COORDINATOR: divera_coordinator
         }
 
-        await divera_coordinator.async_config_entry_first_refresh()
+        tasks.append(asyncio.create_task(divera_coordinator.async_config_entry_first_refresh()))
+
+    await asyncio.wait(tasks)
 
     entry.async_on_unload(entry.add_update_listener(async_update_listener))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
     return True
 
 
@@ -109,7 +113,8 @@ async def async_migrate_entry(hass, config_entry: ConfigEntry):
         new[DATA_ACCESSKEY] = accesskey
         new.pop(CONF_NAME)
 
-        divera_client: DiveraClient = DiveraClient(accesskey=accesskey)
+        websession = async_get_clientsession(hass)
+        divera_client: DiveraClient = DiveraClient(websession, accesskey=accesskey)
         try:
             await divera_client.pull_data()
         except DiveraError:

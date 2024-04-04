@@ -3,4 +3,3 @@ homeassistant==2024.4.0
 ruff==0.3.5
 pip>=24,<25
 black==24.3.0
-httpx==0.27.0
