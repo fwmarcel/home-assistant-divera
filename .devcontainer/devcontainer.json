@@ -2,9 +2,7 @@
   "name": "home-assistant-divera",
   "image": "python:3.12.2",
   "postCreateCommand": "scripts/setup.sh",
-  "forwardPorts": [
-    8123
-  ],
+  "forwardPorts": [8123],
   "portsAttributes": {
     "8123": {
       "label": "Home Assistant",

@@ -1,9 +1,7 @@
 {
   "domain": "divera",
   "name": "Divera 24/7",
-  "codeowners": [
-    "@fwmarcel"
-  ],
+  "codeowners": ["@fwmarcel"],
   "config_flow": true,
   "documentation": "https://github.com/fwmarcel/home-assistant-divera",
   "iot_class": "cloud_polling",
