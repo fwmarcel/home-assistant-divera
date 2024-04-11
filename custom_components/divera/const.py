@@ -1,4 +1,5 @@
 """constants for divera integration."""
+
 import logging
 
 LOGGER = logging.getLogger(__package__)

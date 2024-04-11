@@ -1,5 +1,6 @@
 name: Semantic-Release
-on:
+
+on: # yamllint disable-line rule:truthy
   workflow_dispatch:
   push:
     branches:
