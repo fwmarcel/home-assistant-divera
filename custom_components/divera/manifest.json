@@ -8,5 +8,5 @@
   "documentation": "https://github.com/fwmarcel/home-assistant-divera",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/fwmarcel/home-assistant-divera/issues",
-  "version": "1.1.0-rc.6"
+  "version": "1.1.1"
 }
