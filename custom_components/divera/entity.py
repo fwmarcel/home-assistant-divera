@@ -11,7 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, DIVERA_GMBH, DIVERA_BASE_URL
+from .const import DIVERA_BASE_URL, DIVERA_GMBH, DOMAIN
 from .coordinator import DiveraCoordinator
 from .divera import DiveraClient
 
@@ -43,9 +43,7 @@ class DiveraEntity(CoordinatorEntity[DiveraCoordinator]):
     entity_description: DiveraEntityDescription
 
     def __init__(
-            self,
-            coordinator: DiveraCoordinator,
-            description: DiveraEntityDescription
+        self, coordinator: DiveraCoordinator, description: DiveraEntityDescription
     ) -> None:
         """Initialize DiveraEntity.
 
@@ -58,7 +56,9 @@ class DiveraEntity(CoordinatorEntity[DiveraCoordinator]):
         self.entity_description = description
 
         self._ucr_id = self.coordinator.data.get_active_ucr()
-        self._cluster_name = self.coordinator.data.get_cluster_name_from_ucr(self._ucr_id)
+        self._cluster_name = self.coordinator.data.get_cluster_name_from_ucr(
+            self._ucr_id
+        )
 
         self._attr_unique_id = "_".join(
             [

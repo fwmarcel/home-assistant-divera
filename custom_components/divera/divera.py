@@ -2,20 +2,27 @@
 
 from datetime import datetime
 from http.client import UNAUTHORIZED
-from typing import List
 
-from aiohttp import ClientError, ClientResponseError
+from aiohttp import ClientError, ClientResponseError, ClientSession
+
 from homeassistant.const import STATE_UNKNOWN
 
 from .const import (
-    DIVERA_API_STATUS_PATH,
     DIVERA_API_PULL_PATH,
+    DIVERA_API_STATUS_PATH,
+    DIVERA_BASE_URL,
+    LOGGER,
     PARAM_ACCESSKEY,
+    PARAM_EVENT,
+    PARAM_LOCALMONITOR,
+    PARAM_MONITOR,
+    PARAM_NEWS,
+    PARAM_STATUSPLAN,
     PARAM_UCR,
-    VERSION_UNKNOWN,
     VERSION_ALARM,
     VERSION_FREE,
-    VERSION_PRO, LOGGER, DIVERA_BASE_URL,
+    VERSION_PRO,
+    VERSION_UNKNOWN,
 )
 from .utils import remove_params_from_url
 
@@ -23,10 +30,13 @@ from .utils import remove_params_from_url
 class DiveraClient:
     """Represents a client for interacting with the Divera API."""
 
-    def __init__(self, session, accesskey, base_url=DIVERA_BASE_URL, ucr_id=None) -> None:
+    def __init__(
+        self, session: ClientSession, accesskey, base_url=DIVERA_BASE_URL, ucr_id=None
+    ) -> None:
         """Initialize DiveraClient.
 
         Args:
+            session (ClientSession): Client session for making HTTP requests.
             accesskey (str): Access key for accessing Divera data.
             base_url (str, optional): Base URL for Divera API. Defaults to DIVERA_BASE_URL.
             ucr_id (str, optional): Unique identifier for the organization. Defaults to None.
@@ -48,13 +58,15 @@ class DiveraClient:
             DiveraAuthError: If authentication fails while connecting to the Divera API.
 
         """
-        url = "".join(
-            [
-                self.__base_url,
-                DIVERA_API_PULL_PATH
-            ])
+        url = "".join([self.__base_url, DIVERA_API_PULL_PATH])
+        time = int(datetime.now().timestamp())
         params = {
-            PARAM_ACCESSKEY: self.__accesskey
+            PARAM_ACCESSKEY: self.__accesskey,
+            PARAM_NEWS: time,
+            PARAM_EVENT: time,
+            PARAM_STATUSPLAN: time,
+            PARAM_LOCALMONITOR: time,
+            PARAM_MONITOR: time,
         }
         if self.__ucr_id is not None:
             params[PARAM_UCR] = self.__ucr_id
@@ -65,18 +77,22 @@ class DiveraClient:
         except ClientResponseError as exc:
             # TODO Exception Tests
             url = remove_params_from_url(exc.request_info.url)
-            LOGGER.error(f"Error response {exc.response.status_code} while requesting {url!r}.")
-            if exc.response.status_code == UNAUTHORIZED:
+            LOGGER.error(f"Error response {exc.status} while requesting {url!r}.")
+            if exc.status == UNAUTHORIZED:
                 raise DiveraAuthError from None
-            else:
-                raise DiveraConnectionError from None
+            raise DiveraConnectionError from None
         except ClientError as exc:
-            url = remove_params_from_url(exc.request.url)
+            url = remove_params_from_url(exc.request_info.url)
             LOGGER.error(f"An error occurred while requesting {url!r}.")
             raise DiveraConnectionError from None
 
-
     def get_base_url(self) -> str:
+        """Get the base URL of the Divera API.
+
+        Returns:
+            str: The base URL.
+
+        """
         return self.__base_url
 
     def get_full_name(self) -> str:
@@ -174,8 +190,7 @@ class DiveraClient:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        state_name = self.__data["data"]["cluster"]["status"][str(status_id)]["name"]
-        return state_name
+        return self.__data["data"]["cluster"]["status"][str(status_id)]["name"]
 
     def get_user_state_attributes(self) -> dict:
         """Return additional information of the user's state.
@@ -215,7 +230,9 @@ class DiveraClient:
         last_alarm_id = sorting_list[0]
         alarm = self.__data["data"]["alarm"]["items"].get(str(last_alarm_id), {})
 
-        groups = [self.get_group_name_by_id(group_id) for group_id in alarm.get("group", [])]
+        groups = [
+            self.get_group_name_by_id(group_id) for group_id in alarm.get("group", [])
+        ]
 
         return {
             "id": alarm.get("id"),
@@ -271,8 +288,7 @@ class DiveraClient:
             last_alarm_id = sorting_list[0]
             alarm = self.__data["data"]["alarm"]["items"].get(str(last_alarm_id), {})
             return alarm.get("title", STATE_UNKNOWN)
-        else:
-            return STATE_UNKNOWN
+        return STATE_UNKNOWN
 
     def get_group_name_by_id(self, group_id):
         """Return the name from the given group id.
@@ -372,17 +388,17 @@ class DiveraClient:
         """
         return list(self.__data["data"]["ucr"])
 
-    def get_cluster_names_from_ucrs(self, ucr_ids: List[int]) -> List[str]:
-        """
-        Get cluster names from a list of UCR IDs.
+    def get_cluster_names_from_ucrs(self, ucr_ids: list[int]) -> list[str]:
+        """Get cluster names from a list of UCR IDs.
 
         Args:
             ucr_ids (List[int]): List of UCR IDs.
 
         Returns:
             List[str]: List of cluster names corresponding to the given UCR IDs.
+
         """
-        return list(map(lambda id: self.get_cluster_name_from_ucr(id), ucr_ids))
+        return [self.get_cluster_name_from_ucr(id) for id in ucr_ids]
 
     def get_cluster_name_from_ucr(self, ucr_id) -> str:
         """Retrieve the name of the cluster associated with the given User Cluster Relation (UCR) ID.
@@ -461,25 +477,16 @@ class DiveraClient:
 
     async def set_user_state_by_id(self, state_id: int):
         """Set the state of the user to the given id."""
-        state = {
-            "Status": {
-                "id": state_id
-            }
-        }
+        state = {"Status": {"id": state_id}}
 
-        params = {
-            PARAM_ACCESSKEY: self.__accesskey,
-            PARAM_UCR: self.__ucr_id
-        }
+        params = {PARAM_ACCESSKEY: self.__accesskey, PARAM_UCR: self.__ucr_id}
 
-        url = "".join(
-            [
-                self.__base_url,
-                DIVERA_API_STATUS_PATH
-            ])
+        url = "".join([self.__base_url, DIVERA_API_STATUS_PATH])
 
         try:
-            async with self.__session.post(url=url, params=params, json=state) as response:
+            async with self.__session.post(
+                url=url, params=params, json=state
+            ) as response:
                 response.raise_for_status()
         except ClientError as exc:
             url = remove_params_from_url(exc.request.url)
@@ -487,11 +494,12 @@ class DiveraClient:
             raise DiveraConnectionError from None
         except ClientResponseError as exc:
             url = remove_params_from_url(exc.request.url)
-            LOGGER.error(f"Error response {exc.response.status_code} while requesting {url!r}.")
+            LOGGER.error(
+                f"Error response {exc.response.status_code} while requesting {url!r}."
+            )
             if exc.response.status_code == UNAUTHORIZED:
                 raise DiveraAuthError from None
-            else:
-                raise DiveraConnectionError from None
+            raise DiveraConnectionError from None
 
     def get_cluster_version(self) -> str:
         """Retrieve the version of the cluster.
@@ -527,12 +535,6 @@ class DiveraClient:
         """
         sid = self.get_state_id_by_name(option)
         await self.set_user_state_by_id(sid)
-
-    def get_vehicle(self, vehicle_id):
-        pass
-
-    def get_vehicle(self, vehicle_id):
-        pass
 
 
 class DiveraError(Exception):

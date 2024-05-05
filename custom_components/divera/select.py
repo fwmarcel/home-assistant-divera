@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from . import DiveraCoordinator
-from .const import DOMAIN, DATA_UCRS, DATA_DIVERA_COORDINATOR
+from .const import DATA_DIVERA_COORDINATOR, DATA_UCRS, DOMAIN
 from .divera import DiveraClient, DiveraError
 from .entity import DiveraEntity, DiveraEntityDescription
 
@@ -53,7 +53,11 @@ SENSORS: tuple[DiveraSelectEntityDescription, ...] = (
 )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback, ) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Divera select entities.
 
     Args:
@@ -90,9 +94,9 @@ class DiveraSelectEntity(DiveraEntity, SelectEntity):
     entity_description: DiveraSelectEntityDescription
 
     def __init__(
-            self,
-            coordinator: DiveraCoordinator,
-            description: DiveraSelectEntityDescription,
+        self,
+        coordinator: DiveraCoordinator,
+        description: DiveraSelectEntityDescription,
     ) -> None:
         """Initialize DiveraSelectEntity.
 
@@ -124,7 +128,9 @@ class DiveraSelectEntity(DiveraEntity, SelectEntity):
 
         """
         try:
-            await self.entity_description.select_option_fn(self.coordinator.data, option)
+            await self.entity_description.select_option_fn(
+                self.coordinator.data, option
+            )
         except DiveraError as exc:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,

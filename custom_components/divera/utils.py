@@ -1,7 +1,9 @@
 """Utils Module for Divera Integration."""
 
+from yarl import URL
 
-def remove_params_from_url(url):
+
+def remove_params_from_url(url: URL):
     """Remove parameters from a URL.
 
     Args:
@@ -11,5 +13,6 @@ def remove_params_from_url(url):
         str: URL without the parameters part.
 
     """
-    url_str: str = str(url)
-    return url_str[:url_str.find('?')]
+    url.with_query()
+    url_str: str = url.human_repr()
+    return url_str

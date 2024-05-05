@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
-from .const import DOMAIN, DATA_DIVERA_COORDINATOR, DATA_UCRS
+from .const import DATA_DIVERA_COORDINATOR, DATA_UCRS, DOMAIN
 from .coordinator import DiveraCoordinator
 from .divera import DiveraClient
 from .entity import DiveraEntity, DiveraEntityDescription
@@ -43,7 +43,11 @@ SENSORS: tuple[DiveraSensorEntityDescription, ...] = (
 )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback, ) -> None:
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up Divera sensor entities.
 
     Args:
@@ -80,9 +84,9 @@ class DiveraSensorEntity(DiveraEntity, SensorEntity):
     entity_description: DiveraSensorEntityDescription
 
     def __init__(
-            self,
-            coordinator: DiveraCoordinator,
-            description: DiveraSensorEntityDescription,
+        self,
+        coordinator: DiveraCoordinator,
+        description: DiveraSensorEntityDescription,
     ) -> None:
         """Initialize DiveraSensorEntity.
 
