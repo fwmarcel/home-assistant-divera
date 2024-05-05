@@ -2,11 +2,13 @@
   "title": "Divera 24/7",
   "config": {
     "step": {
-      "accesskey": {
+      "api": {
+        "title": "Divera 24/7 Setup",
+        "description": "The accesskey will be used to pull the data from the servers. You can found your accesskey in your settings under debug item.",
         "data": {
-          "accesskey": "Accesskey"
-        },
-        "description": "The accesskey will be used to pull the data from the servers. You can found your accesskey in your settings under debug item."
+          "accesskey": "Accesskey",
+          "base_url": "Server Address"
+        }
       },
       "user_cluster_relation": {
         "data": {
@@ -17,11 +19,39 @@
     },
     "error": {
       "cannot_connect": "Error during connection.",
-      "auth": "Error during authentication.",
+      "authentication": "Error during authentication.",
       "unknown": "Unknown Error"
     },
     "abort": {
       "already_configured": "This User is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "scan_interval": {
+        "title": "Divera 24/7 Options",
+        "description": "The update interval must be between 10 and 300 seconds. If the interval is too short, this may lead to problems.",
+        "data": {
+          "scan_interval": "Update Interval (seconds)"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "user_state_error": {
+      "message": "Error when changing the user status in {cluster_name}"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alarm": {
+        "name": "Alarm"
+      }
+    },
+    "select": {
+      "user_status": {
+        "name": "User Status"
+      }
     }
   }
 }

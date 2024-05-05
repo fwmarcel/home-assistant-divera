@@ -16,24 +16,25 @@ blueprint:
           domain: sensor
           multiple: false
     self_addressed:
-      name: 'Self addressed'
-      description: 'Check if I was addressed myself'
+      name: "Self addressed"
+      description: "Check if I was addressed myself"
       selector:
-        boolean: { }
+        boolean: {}
       default: true
     abort_keyword:
       name: (optional) Abort keyword
-      description: '(optional) Alarm title/keyword when the action should not be triggered.
-        For example: Probealarm'
-      default: ''
+      description:
+        "(optional) Alarm title/keyword when the action should not be triggered.
+        For example: Probealarm"
+      default: ""
       selector:
         text:
           multiline: false
     target_action:
       name: Action
-      description: What should be done, when a new divera alarm is trigged?
+      description: What should be done, when a new divera alarm is triggered?
       selector:
-        action: { }
+        action: {}
 mode: parallel
 max: 10
 variables:
@@ -43,7 +44,7 @@ trigger:
     entity_id: !input divera_sensor
     not_to:
       - unknown
-      - !input 'abort_keyword'
+      - !input "abort_keyword"
 condition:
   - condition: or
     conditions:

@@ -1,92 +1,99 @@
-"""Connector Class for Divera Data."""
+"""Divera Http Client Module for Divera Integration."""
 
-import json
-import logging
 from datetime import datetime
+from http.client import UNAUTHORIZED
 
-import requests
+from aiohttp import ClientError, ClientResponseError, ClientSession
+
 from homeassistant.const import STATE_UNKNOWN
 
 from .const import (
-    DEFAULT_TIMEOUT,
-    DIVERA_STATUS_URL,
-    DIVERA_URL,
-    ACCESSKEY,
-    UCR,
-    VERSION_UNKNOWN,
+    DIVERA_API_PULL_PATH,
+    DIVERA_API_STATUS_PATH,
+    DIVERA_BASE_URL,
+    LOGGER,
+    PARAM_ACCESSKEY,
+    PARAM_EVENT,
+    PARAM_LOCALMONITOR,
+    PARAM_MONITOR,
+    PARAM_NEWS,
+    PARAM_STATUSPLAN,
+    PARAM_UCR,
     VERSION_ALARM,
     VERSION_FREE,
     VERSION_PRO,
+    VERSION_UNKNOWN,
 )
+from .utils import remove_params_from_url
 
-_LOGGER = logging.getLogger(__name__)
 
+class DiveraClient:
+    """Represents a client for interacting with the Divera API."""
 
-class DiveraData:
-    """Class for managing Divera data.
-
-    Attributes:
-        _hass: Home Assistant instance.
-        success (bool): Indicates if data retrieval was successful.
-        latest_update: Timestamp of the latest update.
-        data: Data retrieved from Divera.
-        accesskey (str): Access key for authentication.
-        ucr_id (Optional[int]): ID of the User Cluster Relation (UCR).
-
-    """
-
-    def __init__(self, hass, accesskey, ucr_id=None) -> None:
-        """Initialize DiveraData with Home Assistant instance and access key.
+    def __init__(
+        self, session: ClientSession, accesskey, base_url=DIVERA_BASE_URL, ucr_id=None
+    ) -> None:
+        """Initialize DiveraClient.
 
         Args:
-            hass: Home Assistant instance.
-            accesskey (str): Access key for authentication.
-            ucr_id (Optional[int]): ID of the User Cluster Relation (UCR).
+            session (ClientSession): Client session for making HTTP requests.
+            accesskey (str): Access key for accessing Divera data.
+            base_url (str, optional): Base URL for Divera API. Defaults to DIVERA_BASE_URL.
+            ucr_id (str, optional): Unique identifier for the organization. Defaults to None.
 
         """
-        self._hass = hass
-        self.success = False
-        self.latest_update = None
-        self.data = None
-        self.accesskey = accesskey
-        self.ucr_id = ucr_id
+        self.__session = session
+        self.__data = None
+        self.__accesskey = accesskey
+        self.__base_url = base_url
+        self.__ucr_id = ucr_id
 
-    async def async_update(self):
-        """Asynchronously update all Divera entities.
+    async def pull_data(self):
+        """Pull data from the Divera API.
+
+        Retrieves data from the Divera API and updates the internal data store.
+
+        Raises:
+            DiveraConnectionError: If an error occurs while connecting to the Divera API.
+            DiveraAuthError: If authentication fails while connecting to the Divera API.
+
+        """
+        url = "".join([self.__base_url, DIVERA_API_PULL_PATH])
+        time = int(datetime.now().timestamp())
+        params = {
+            PARAM_ACCESSKEY: self.__accesskey,
+            PARAM_NEWS: time,
+            PARAM_EVENT: time,
+            PARAM_STATUSPLAN: time,
+            PARAM_LOCALMONITOR: time,
+            PARAM_MONITOR: time,
+        }
+        if self.__ucr_id is not None:
+            params[PARAM_UCR] = self.__ucr_id
+        try:
+            async with self.__session.get(url=url, params=params) as response:
+                response.raise_for_status()
+                self.__data = await response.json()
+        except ClientResponseError as exc:
+            # TODO Exception Tests
+            url = remove_params_from_url(exc.request_info.url)
+            LOGGER.error(f"Error response {exc.status} while requesting {url!r}.")
+            if exc.status == UNAUTHORIZED:
+                raise DiveraAuthError from None
+            raise DiveraConnectionError from None
+        except ClientError as exc:
+            url = remove_params_from_url(exc.request_info.url)
+            LOGGER.error(f"An error occurred while requesting {url!r}.")
+            raise DiveraConnectionError from None
+
+    def get_base_url(self) -> str:
+        """Get the base URL of the Divera API.
 
         Returns:
-            Any: The result of the asynchronous update operation.
-
-        Note:
-            This method uses asynchronous execution for the update operation.
+            str: The base URL.
 
         """
-        return await self._hass.async_add_executor_job(self._update)
-
-    def _update(self):
-        """Update for all Divera entities.
-
-        Updates the data by making a request to the Divera API.
-
-        """
-        timestamp = datetime.now()
-
-        if not self.accesskey:
-            _LOGGER.exception("No update possible")
-        else:
-            params = {ACCESSKEY: self.accesskey}
-            if self.ucr_id is not None:
-                params["ucr"] = self.ucr_id
-            try:
-                response = requests.get(DIVERA_URL, params=params, timeout=DEFAULT_TIMEOUT)
-                self.data = response.json()
-                self.success = response.status_code == 200
-            except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("Error: %s", ex)
-                self.success = False
-            else:
-                self.latest_update = timestamp
-            _LOGGER.debug("Values updated at %s", self.latest_update)
+        return self.__base_url
 
     def get_full_name(self) -> str:
         """Retrieve the full name of the user associated with the data.
@@ -98,8 +105,8 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        firstname = self.data["data"]["user"]["firstname"]
-        lastname = self.data["data"]["user"]["lastname"]
+        firstname = self.__data["data"]["user"]["firstname"]
+        lastname = self.__data["data"]["user"]["lastname"]
         return firstname + " " + lastname
 
     def get_user(self) -> dict:
@@ -114,8 +121,8 @@ class DiveraData:
 
         """
         data = {}
-        data["firstname"] = self.data["data"]["user"]["firstname"]
-        data["lastname"] = self.data["data"]["user"]["lastname"]
+        data["firstname"] = self.__data["data"]["user"]["firstname"]
+        data["lastname"] = self.__data["data"]["user"]["lastname"]
         data["fullname"] = self.get_full_name()
         data["email"] = self.get_email()
         return data
@@ -134,8 +141,8 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        for state_id in self.data["data"]["cluster"]["statussorting"]:
-            state_name = self.data["data"]["cluster"]["status"][str(state_id)]["name"]
+        for state_id in self.__data["data"]["cluster"]["statussorting"]:
+            state_name = self.__data["data"]["cluster"]["status"][str(state_id)]["name"]
             if state_name == name:
                 return state_id
         # TODO: raise Error instead of None
@@ -152,8 +159,8 @@ class DiveraData:
 
         """
         states = []
-        for state_id in self.data["data"]["cluster"]["statussorting"]:
-            state_name = self.data["data"]["cluster"]["status"][str(state_id)]["name"]
+        for state_id in self.__data["data"]["cluster"]["statussorting"]:
+            state_name = self.__data["data"]["cluster"]["status"][str(state_id)]["name"]
             states.append(state_name)
         return states
 
@@ -167,7 +174,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        status_id = self.data["data"]["status"]["status_id"]
+        status_id = self.__data["data"]["status"]["status_id"]
         return self.get_state_name_by_id(status_id)
 
     def get_state_name_by_id(self, status_id) -> str:
@@ -183,8 +190,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        state_name = self.data["data"]["cluster"]["status"][str(status_id)]["name"]
-        return state_name
+        return self.__data["data"]["cluster"]["status"][str(status_id)]["name"]
 
     def get_user_state_attributes(self) -> dict:
         """Return additional information of the user's state.
@@ -198,9 +204,9 @@ class DiveraData:
 
         """
         data = {}
-        timestamp = self.data["data"]["status"]["status_set_date"]
+        timestamp = self.__data["data"]["status"]["status_set_date"]
         data["timestamp"] = datetime.fromtimestamp(timestamp)
-        data["id"] = self.data["data"]["status"]["status_id"]
+        data["id"] = self.__data["data"]["status"]["status_id"]
         return data
 
     def get_last_alarm_attributes(self) -> dict:
@@ -217,14 +223,16 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        sorting_list = self.data["data"]["alarm"]["sorting"]
+        sorting_list = self.__data["data"]["alarm"]["sorting"]
         if not sorting_list:
             return {}
 
         last_alarm_id = sorting_list[0]
-        alarm = self.data["data"]["alarm"]["items"].get(str(last_alarm_id), {})
+        alarm = self.__data["data"]["alarm"]["items"].get(str(last_alarm_id), {})
 
-        groups = [self.get_group_name_by_id(group_id) for group_id in alarm.get("group", [])]
+        groups = [
+            self.get_group_name_by_id(group_id) for group_id in alarm.get("group", [])
+        ]
 
         return {
             "id": alarm.get("id"),
@@ -275,13 +283,12 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        sorting_list = self.data["data"]["alarm"]["sorting"]
+        sorting_list = self.__data["data"]["alarm"]["sorting"]
         if sorting_list:
             last_alarm_id = sorting_list[0]
-            alarm = self.data["data"]["alarm"]["items"].get(str(last_alarm_id), {})
+            alarm = self.__data["data"]["alarm"]["items"].get(str(last_alarm_id), {})
             return alarm.get("title", STATE_UNKNOWN)
-        else:
-            return STATE_UNKNOWN
+        return STATE_UNKNOWN
 
     def get_group_name_by_id(self, group_id):
         """Return the name from the given group id.
@@ -298,7 +305,7 @@ class DiveraData:
 
         """
         try:
-            group = self.data["data"]["cluster"]["group"][str(group_id)]
+            group = self.__data["data"]["cluster"]["group"][str(group_id)]
             return group["name"]
         except KeyError:
             return None
@@ -313,7 +320,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["ucr_default"]
+        return self.__data["data"]["ucr_default"]
 
     def get_active_ucr(self) -> int:
         """Retrieve the active User Cluster Relation (UCR) associated with the data.
@@ -325,7 +332,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["ucr_active"]
+        return self.__data["data"]["ucr_active"]
 
     def get_default_cluster_name(self) -> str:
         """Retrieve the name of the default cluster associated with the data.
@@ -362,7 +369,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        ucr_ids = list(self.data["data"]["ucr"])
+        ucr_ids = list(self.__data["data"]["ucr"])
         cluster_names = []
         for ucr_id in ucr_ids:
             ucr_name = self.get_cluster_name_from_ucr(ucr_id)
@@ -379,7 +386,19 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return list(self.data["data"]["ucr"])
+        return list(self.__data["data"]["ucr"])
+
+    def get_cluster_names_from_ucrs(self, ucr_ids: list[int]) -> list[str]:
+        """Get cluster names from a list of UCR IDs.
+
+        Args:
+            ucr_ids (List[int]): List of UCR IDs.
+
+        Returns:
+            List[str]: List of cluster names corresponding to the given UCR IDs.
+
+        """
+        return [self.get_cluster_name_from_ucr(id) for id in ucr_ids]
 
     def get_cluster_name_from_ucr(self, ucr_id) -> str:
         """Retrieve the name of the cluster associated with the given User Cluster Relation (UCR) ID.
@@ -394,7 +413,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["ucr"][str(ucr_id)]["name"]
+        return self.__data["data"]["ucr"][str(ucr_id)]["name"]
 
     def get_cluster_id_from_ucr(self, ucr_id) -> int:
         """Retrieve the ID of the cluster associated with the given User Cluster Relation (UCR) ID.
@@ -409,7 +428,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["ucr"][str(ucr_id)]["cluster_id"]
+        return self.__data["data"]["ucr"][str(ucr_id)]["cluster_id"]
 
     def get_ucr_ids(self, ucr_names) -> list:
         """Retrieve the IDs of User Cluster Relations (UCRs) associated with the given names.
@@ -424,7 +443,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        ucr_ids = list(self.data["data"]["ucr"])
+        ucr_ids = list(self.__data["data"]["ucr"])
         ucr_name_ids = []
         for ucr_id in ucr_ids:
             ucr_name = self.get_cluster_name_from_ucr(ucr_id)
@@ -442,7 +461,7 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["user"]["accesskey"]
+        return self.__data["data"]["user"]["accesskey"]
 
     def get_email(self) -> str:
         """Retrieve the email of the user associated with the data.
@@ -454,29 +473,33 @@ class DiveraData:
             KeyError: If the required keys are not found in the data dictionary.
 
         """
-        return self.data["data"]["user"]["email"]
+        return self.__data["data"]["user"]["email"]
 
-    def set_state(self, state_id):
+    async def set_user_state_by_id(self, state_id: int):
         """Set the state of the user to the given id."""
-        payload = json.dumps({"Status": {"id": state_id}})
-        headers = {"Content-Type": "application/json"}
+        state = {"Status": {"id": state_id}}
 
-        if not self.accesskey:
-            _LOGGER.exception("state can not be set. accesskey is missing or wrong.")
-        else:
-            params = {ACCESSKEY: self.accesskey, UCR: self.ucr_id}
-            try:
-                response = requests.post(
-                    DIVERA_STATUS_URL,
-                    params=params,
-                    headers=headers,
-                    timeout=DEFAULT_TIMEOUT,
-                    data=payload,
-                )
-                if response.status_code != 200:
-                    _LOGGER.error("error while setting the state %s", response.status_code)
-            except requests.exceptions.HTTPError as ex:
-                _LOGGER.error("Error: %s", ex)
+        params = {PARAM_ACCESSKEY: self.__accesskey, PARAM_UCR: self.__ucr_id}
+
+        url = "".join([self.__base_url, DIVERA_API_STATUS_PATH])
+
+        try:
+            async with self.__session.post(
+                url=url, params=params, json=state
+            ) as response:
+                response.raise_for_status()
+        except ClientError as exc:
+            url = remove_params_from_url(exc.request.url)
+            LOGGER.error(f"An error occurred while requesting {url!r}.")
+            raise DiveraConnectionError from None
+        except ClientResponseError as exc:
+            url = remove_params_from_url(exc.request.url)
+            LOGGER.error(
+                f"Error response {exc.response.status_code} while requesting {url!r}."
+            )
+            if exc.response.status_code == UNAUTHORIZED:
+                raise DiveraAuthError from None
+            raise DiveraConnectionError from None
 
     def get_cluster_version(self) -> str:
         """Retrieve the version of the cluster.
@@ -492,7 +515,7 @@ class DiveraData:
             The version_id is extracted from the 'data' dictionary attribute of the instance.
 
         """
-        version = self.data["data"]["cluster"]["version_id"]
+        version = self.__data["data"]["cluster"]["version_id"]
         match version:
             case 1:
                 return VERSION_FREE
@@ -502,3 +525,25 @@ class DiveraData:
                 return VERSION_PRO
             case _:
                 return VERSION_UNKNOWN
+
+    async def set_user_state_by_name(self, option: str):
+        """Set user state by name.
+
+        Args:
+            option (str): The name of the option to set the user state.
+
+        """
+        sid = self.get_state_id_by_name(option)
+        await self.set_user_state_by_id(sid)
+
+
+class DiveraError(Exception):
+    """Base class for Divera-related exceptions."""
+
+
+class DiveraAuthError(DiveraError):
+    """Exception raised for authentication errors in Divera."""
+
+
+class DiveraConnectionError(DiveraError):
+    """Exception raised for errors occurring during connection to Divera."""

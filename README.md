@@ -3,6 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/fwmarcel/home-assistant-divera?sort=semver&style=for-the-badge&color=green)](https://github.com/fwmarcel/home-assistant-divera/releases/)
 [![GitHub Release Date](https://img.shields.io/github/release-date/fwmarcel/home-assistant-divera?style=for-the-badge&color=green)](https://github.com/fwmarcel/home-assistant-divera/releases/)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/fwmarcel/home-assistant-divera/latest/total?style=for-the-badge&label=Downloads)
+![HA Analytics](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fanalytics.home-assistant.io%2Fcustom_integrations.json&query=%24.divera.total&style=for-the-badge&label=Active%20Installations&color=red)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/fwmarcel/home-assistant-divera?style=for-the-badge)
 [![hacs](https://img.shields.io/badge/HACS-Integration-blue.svg?style=for-the-badge)](https://github.com/hacs/integration)
 [![BuyMeCoffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge)](https://www.buymeacoffee.com/fwmarcel)
