@@ -6,26 +6,6 @@
       "prerelease": "rc"
     }
   ],
-  "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "./scripts/prepare-release.sh ${nextRelease.version}"
-      }
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "assets": [
-          {
-            "path": "custom_components/divera/divera.zip"
-          }
-        ]
-      }
-    ]
-  ],
   "presetConfig": {
     "types": [
       {
@@ -57,5 +37,31 @@
         "section": "Continuous Integration :wrench:"
       }
     ]
-  }
+},
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./scripts/prepare-release.sh ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["custom_components/divera/manifest.json"]
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "custom_components/divera/divera.zip"
+          }
+        ]
+      }
+    ]
+  ]
 }
