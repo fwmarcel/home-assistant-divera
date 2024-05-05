@@ -2,7 +2,7 @@ colorlog==6.8.2
 homeassistant==2024.5.1
 ruff==0.3.5
 pip>=24,<25
-black==24.3.0
+black==24.4.2
 pre-commit==3.7.0
 pytest-homeassistant-custom-component==0.13.121
 pytest==8.1.1
