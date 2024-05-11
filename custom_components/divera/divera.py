@@ -262,15 +262,10 @@ class DiveraClient:
         answered = alarm.get("ucr_answered", {})
         ucr_id = self.get_active_ucr()
 
-        for answer_state in answered.values():
-            if isinstance(answer_state, dict):
-                if str(ucr_id) in answer_state:
-                    return self.get_state_name_by_id(answer_state)
-            elif isinstance(answer_state, list):
-                for state_id in answer_state:
-                    state = answer_state.get(str(state_id), {})
-                    if ucr_id in state:
-                        return self.get_state_name_by_id(answer_state)
+        for state_id in answered:
+            answer = answered.get(state_id)
+            if str(ucr_id) in answer:
+                return self.get_state_name_by_id(state_id)
         return "not answered"
 
     def get_last_alarm(self) -> dict:
