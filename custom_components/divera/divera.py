@@ -264,7 +264,7 @@ class DiveraClient:
 
         for answer_state in answered.values():
             if isinstance(answer_state, dict):
-                if ucr_id in answer_state:
+                if str(ucr_id) in answer_state:
                     return self.get_state_name_by_id(answer_state)
             elif isinstance(answer_state, list):
                 for state_id in answer_state:
