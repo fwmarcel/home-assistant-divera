@@ -15,6 +15,12 @@
           "clusters": "Aktive Einheiten:"
         },
         "description": "Ein DIVERA 24/7 Account kann mehrere Einheiten gleichzeitig haben. Standardmäßig wird nur die Stammeinheit geladen."
+      },
+      "reconfigure_confirm": {
+        "data": {
+          "clusters": "Aktive Einheiten:"
+        },
+        "description": "Rekonfigurieren Sie den Eintrag für ihren Benutzer."
       }
     },
     "error": {
@@ -23,7 +29,9 @@
       "unknown": "Unbekannter Fehler"
     },
     "abort": {
-      "already_configured": "Dieser Benutzer ist bereits konfiguriert."
+      "already_configured": "Dieser Benutzer ist bereits konfiguriert.",
+      "reconfigure_successful": "Rekonfigurieren erfolgreich.",
+      "only_one_unit": "Dieser Benutzer hat nur eine Einheit."
     }
   },
   "options": {

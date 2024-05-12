@@ -4,7 +4,12 @@ from typing import Any
 
 from voluptuous import Optional, Required, Schema
 
-from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow
+from homeassistant.config_entries import (
+    HANDLERS,
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+)
 from homeassistant.data_entry_flow import FlowHandler
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
@@ -21,6 +26,7 @@ from .const import (
     CONF_CLUSTERS,
     CONF_FLOW_MINOR_VERSION,
     CONF_FLOW_NAME_API,
+    CONF_FLOW_NAME_RECONFIGURE,
     CONF_FLOW_NAME_UCR,
     CONF_FLOW_VERSION,
     DATA_ACCESSKEY,
@@ -116,8 +122,78 @@ class DiveraConfigFlow(DiveraFlow, ConfigFlow):
         return await self.async_step_api(user_input)
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None):
-        """Add reconfigure step to allow to reconfigure a config entry."""
-        return await self.async_step_user_cluster_relation(user_input)
+        """Handle the reconfigure step to allow to reconfigure a config entry.
+
+        Args:
+            user_input (dict): User input.
+
+        Returns:
+            dict: The next step or form to present to the user.
+
+        """
+        self._config_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+
+        websession = async_get_clientsession(self.hass)
+        accesskey = self._config_entry.data.get(DATA_ACCESSKEY)
+        base_url = self._config_entry.data.get(DATA_BASE_URL)
+
+        self._divera_client = DiveraClient(websession, accesskey, base_url)
+
+        return await self.async_step_reconfigure_confirm()
+
+    async def async_step_reconfigure_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the reconfigure confirm step to reconfigure active clusters of a config entry.
+
+        Args:
+            user_input (dict): User input.
+
+        Returns:
+            ConfigFlowResult: The next step or form to present to the user.
+
+        """
+        errors: dict[str, str] = {}
+        assert self._config_entry
+
+        try:
+            await self._divera_client.pull_data()
+            if self._divera_client.get_ucr_count() == 1:
+                return self.async_abort(reason="only_one_unit")
+        except DiveraAuthError:
+            errors["base"] = ERROR_AUTH
+        except DiveraConnectionError:
+            errors["base"] = ERROR_CONNECTION
+
+        if user_input is not None:
+            if not errors:
+                selected_cluster_names = user_input[CONF_CLUSTERS]
+                ucr_ids = self._divera_client.get_ucr_ids(selected_cluster_names)
+                data = {**self._config_entry.data, DATA_UCRS: ucr_ids}
+                return self.async_update_reload_and_abort(
+                    self._config_entry,
+                    data=data,
+                    reason="reconfigure_successful",
+                )
+
+        cluster_names = self._divera_client.get_all_cluster_names()
+        ucr_ids = self._config_entry.data.get(DATA_UCRS)
+        active_cluster_names = self._divera_client.get_cluster_names_from_ucrs(ucr_ids)
+
+        cluster_schema = Schema(
+            {
+                Required(CONF_CLUSTERS, default=active_cluster_names): SelectSelector(
+                    SelectSelectorConfig(options=cluster_names, multiple=True)
+                ),
+            }
+        )
+        return self.async_show_form(
+            step_id=CONF_FLOW_NAME_RECONFIGURE,
+            data_schema=cluster_schema,
+            errors=errors,
+        )
 
     async def async_step_api(self, user_input: dict[str, Any] | None = None):
         """Handle the API step of the config flow.
@@ -134,7 +210,6 @@ class DiveraConfigFlow(DiveraFlow, ConfigFlow):
         if user_input is not None:
             accesskey = user_input.get(CONF_ACCESSKEY)
             base_url = user_input.get(CONF_BASE_URL)
-            # await self.set_divera_client(accesskey, base_url, errors)
 
             websession = async_get_clientsession(self.hass)
             self._divera_client = DiveraClient(websession, accesskey, base_url)
