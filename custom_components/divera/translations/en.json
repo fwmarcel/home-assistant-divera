@@ -15,6 +15,12 @@
           "clusters": "Active units:"
         },
         "description": "A DIVERA 24/7 account can have several units at the same time. By default, only the main unit is loaded."
+      },
+      "reconfigure_confirm": {
+        "data": {
+          "clusters": "Active units:"
+        },
+        "description": "Reconfigure the entry for your user."
       }
     },
     "error": {
@@ -23,7 +29,9 @@
       "unknown": "Unknown Error"
     },
     "abort": {
-      "already_configured": "This User is already configured."
+      "already_configured": "This User is already configured.",
+      "reconfigure_successful": "Reconfigure successfully.",
+      "only_one_unit": "This user only has one unit."
     }
   },
   "options": {

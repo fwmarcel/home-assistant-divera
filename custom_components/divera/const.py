@@ -49,6 +49,7 @@ CONF_FLOW_VERSION: int = 3
 CONF_FLOW_MINOR_VERSION: int = 1
 CONF_FLOW_NAME_UCR: str = "user_cluster_relation"
 CONF_FLOW_NAME_API: str = "api"
+CONF_FLOW_NAME_RECONFIGURE: str = "reconfigure_confirm"
 CONF_FLOW_NAME_SCAN_INTERVAL: str = "scan_interval"
 
 ERROR_AUTH = "authentication"
