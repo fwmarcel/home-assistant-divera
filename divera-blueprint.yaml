@@ -9,7 +9,7 @@ blueprint:
   input:
     divera_sensor:
       name: Divera sensor
-      description: The sensor which show the current alarm state
+      description: The sensor which show the current divera alarm state
       selector:
         entity:
           integration: divera
@@ -34,7 +34,7 @@ blueprint:
           multiple: false
     target_action:
       name: Action
-      description: What should be done, when a new divera alarm is trigged?
+      description: What should be done, when a new divera alarm is triggered?
       selector:
         action: {}
 mode: parallel
