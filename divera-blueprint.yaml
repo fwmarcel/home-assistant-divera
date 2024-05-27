@@ -15,7 +15,7 @@ blueprint:
           integration: divera
           domain:
             - sensor
-          multiple: false
+          multiple: true
     self_addressed:
       name: Self addressed
       description: Check if I was addressed myself
