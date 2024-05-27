@@ -13,11 +13,12 @@ blueprint:
       selector:
         entity:
           integration: divera
-          domain: sensor
+          domain:
+            - sensor
           multiple: false
     self_addressed:
-      name: "Self addressed"
-      description: "Check if I was addressed myself"
+      name: Self addressed
+      description: Check if I was addressed myself
       selector:
         boolean: {}
       default: true
@@ -30,9 +31,10 @@ blueprint:
       selector:
         text:
           multiline: false
+          multiple: false
     target_action:
       name: Action
-      description: What should be done, when a new divera alarm is triggered?
+      description: What should be done, when a new divera alarm is trigged?
       selector:
         action: {}
 mode: parallel
@@ -42,18 +44,28 @@ variables:
 trigger:
   - platform: state
     entity_id: !input divera_sensor
+    attribute: id
     not_to:
       - unknown
-      - !input "abort_keyword"
+
 condition:
-  - condition: or
-    conditions:
-      - condition: template
-        value_template: "{{ is_state(self_addressed, 'off') }}"
-      - condition: state
-        entity_id: !input divera_sensor
-        attribute: self_addressed
-        state: true
+  condition: and
+  conditions:
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: !input divera_sensor
+          state:
+            - !input abort_keyword
+            - unknown
+    - condition: or
+      conditions:
+        - condition: template
+          value_template: "{{ not self_addressed }}"
+        - condition: state
+          entity_id: !input divera_sensor
+          attribute: self_addressed
+          state: true
 action:
   - choose:
     default: !input target_action
