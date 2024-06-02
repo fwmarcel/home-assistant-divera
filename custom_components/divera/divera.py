@@ -236,6 +236,7 @@ class DiveraClient:
 
         return {
             "id": alarm.get("id"),
+            "foreign_id": alarm.get("foreign_id"),
             "text": alarm.get("text"),
             "date": datetime.fromtimestamp(alarm.get("date")),
             "address": alarm.get("address"),
